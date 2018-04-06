@@ -1,8 +1,10 @@
-from itertools import islice
-import numpy as np
+import pyttsx3
 
-lst = [0, 0, 1, 0, 0, 0, 1]
-
-
-print(len(lst)-len("".join(map(str, lst)).rstrip("0")))
-
+def onWord(name, location, length):
+   print ('word', name, location, length)
+   if location > 4:
+      engine.stop()
+engine = pyttsx3.init()
+engine.connect('started-word', onWord)
+engine.say('The quick brown fox jumped over the lazy dog.')
+engine.runAndWait()

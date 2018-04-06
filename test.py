@@ -1,10 +1,6 @@
-import pyttsx3
+import itertools
+from prala import WordCycle
 
-def onWord(name, location, length):
-   print ('word', name, location, length)
-   if location > 4:
-      engine.stop()
-engine = pyttsx3.init()
-engine.connect('started-word', onWord)
-engine.say('The quick brown fox jumped over the lazy dog.')
-engine.runAndWait()
+myWordCycle=WordCycle()
+stat_list=list(itertools.product([0,1], repeat=3))
+print([[1, list(i)] for i in stat_list])

@@ -34,7 +34,7 @@ class WordCycle(object):
         except FileNotFoundError as e:
             print( e )
             exit()
-        print(self.word_dict)
+        
         #now in the word_dict found all filtered words by line
 
         with shelve.open(dict_name+"_"+base_language+"_"+learn_leanguage, writeback=True) as db:
@@ -149,8 +149,5 @@ list.sort(key=lambda x: x[0], reverse=True)
 print(*list, sep="\n")
 """
 
-myWordCycle=WordCycle()
-value=myWordCycle.get_next()
-print(value)
 
 

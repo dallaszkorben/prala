@@ -74,8 +74,8 @@ class WordCycle(object):
         The points depend on the good and bad answers
 
         input: 
-                stat_list - [dictionary] key:    word id
-                                    value:  []
+                stat_list - [dictionary]    key:    word id
+                                            value:  []
         output:
                 a random word id from the list
         """
@@ -118,36 +118,3 @@ class WordCycle(object):
         points += np.sum(np.diff(stat) == -1)          
 
         return points
-
-
-
-#recent_stat["1"]=[0,1,0]
-#recent_stat["2"]=[0,0,1]
-#result=[ get_random_word(recent_stat) for i in range(1)]
-#print(result)
-
-
-##Testing get_random_word() method - 
-#for i in range(100):
-#    print( get_random_word(recent_stat) )
-
-##Testing get_random_word() method - 2
-"""
-list=[
-    [1, [0,0,0]],
-    [1, [0,0,1]],
-    [1, [0,1,0]],
-    [1, [0,1,1]],
-    [1, [1,0,0]],
-    [1, [1,0,1]],
-    [1, [1,1,0]],
-    [1, [1,1,1]]
-]
-for i in list:
-    i.__setitem__(0,get_points(i[1]) )
-list.sort(key=lambda x: x[0], reverse=True)
-print(*list, sep="\n")
-"""
-
-
-

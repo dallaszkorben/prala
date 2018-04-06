@@ -1,7 +1,6 @@
 import pyttsx3 as pyttsx
 import shelve
 import random
-from functools import reduce 
 import numpy as np
 
 class WordCycle(object):
@@ -29,12 +28,12 @@ class WordCycle(object):
                 for line in f:
                     element_list=line.strip().split(self.__class__.LINE_SPLITTER)
                     if element_list[1].lower() == part_of_speach_filter.lower():
-                        self.word_dict[element_list[0]]=(element_list[1], element_list[2], list(map(str.strip, element_list[3].strip().split(self.__class__.WORD_SPLITTER) ) ) )      
+                        self.word_dict[element_list[0]]=(element_list[1], element_list[2], list(map(str.strip, element_list[3].strip().split(self.__class__.WORD_SPLITTER) ) ) )
                 
         except FileNotFoundError as e:
             print( e )
             exit()
-        
+
         #now in the word_dict found all filtered words by line
 
         with shelve.open(dict_name+"_"+base_language+"_"+learn_leanguage, writeback=True) as db:
@@ -50,12 +49,9 @@ class WordCycle(object):
                 # create the record if it does not exist
                 try:
                     # remove all empty tuples
-#                   print(db[word_id])
                     db[word_id] = [t for t in db[word_id] if all(t)]
-#                   print(db[word_id])
-#                   print()
                 except Exception as e:
-#                   print("hiba: {0}".format(e.args) 
+
                     #as there has not been record creates an empty
                     db[word_id] = []
     
@@ -109,7 +105,6 @@ class WordCycle(object):
         """
     
         points=1
-
         #counts not knowing last n times(ends with 0)
         points += len(stat)-len("".join(map(str, stat)).rstrip("0"))    
         #counts all not knowings (0s)
@@ -118,3 +113,7 @@ class WordCycle(object):
         points += np.sum(np.diff(stat) == -1)          
 
         return points
+
+#if __name__ == "__main__":
+    #myWordCycle=WordCycle()
+    #print(myWordCycle.get_next())

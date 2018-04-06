@@ -1,0 +1,6 @@
+/env
+**/__pycache__/
+.vscode
+*.dat
+*.bak
+*.dir

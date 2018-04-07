@@ -61,7 +61,37 @@ class WordCycle(object):
                 self.recent_stat[word_id]=db[word_id][-1]
 
     def get_next(self):
-        return self.word_dict[ self.get_random_word(self.recent_stat) ]
+        """
+        Gives back a randomly chosen word from the filtered wordlist
+
+        output: tuple
+                    word id
+                    [part_of_speach, translation,  [word, and, its, forms]]
+        """
+        word_id=self.get_random_word(self.recent_stat)
+        return word_id, self.word_dict[ word_id ]
+
+    def check_answer(self, question, answer):
+        """
+        input:  question: tuple
+                    word id
+                    [part_of_speach, translation,  [word, and, its, forms]]
+                answer: list
+                    [word, and, its, forms]
+
+        output: boolean
+                    True:   if the answer is acceptable
+                    False:  if the answer is not acceptable
+                list
+                    [first, wrong, position, of, words]
+        """
+
+        zipped_list= list(zip( question[1][2], answer + [" "*len(i) for i in question[1][2]][len(answer):] ))
+        diff_list=[[i for i in range(len(j[1])) if j[1][i] != j[0][i]] for j in zipped_list]
+        if sum([1 for i in diff_list if len(i)!=0]) == 0:
+            return True, diff_list
+        else:
+            return False, diff_list
 
     def get_random_word(self, stat_list):
         """
@@ -105,14 +135,17 @@ class WordCycle(object):
         """
     
         points=1
-        #counts not knowing last n times(ends with 0)
+        # counts not knowing last n times(ends with 0)
         points += len(stat)-len("".join(map(str, stat)).rstrip("0"))    
-        #counts all not knowings (0s)
-        points += len(stat)-sum(stat)                   
-        #counts all forgetting (1 -> 0)
+        #   #counts all not knowings (0s)
+        #   points += len(stat)-sum(stat)
+        # counts difference between 1 and 0
+        points += max(sum([1 for i in stat if i == 0])*2 - len(stat), 0)
+        # counts all forgetting (1 -> 0)
         points += np.sum(np.diff(stat) == -1)          
 
         return points
+
 
 #if __name__ == "__main__":
     #myWordCycle=WordCycle()

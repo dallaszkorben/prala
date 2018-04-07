@@ -19,18 +19,18 @@ class TestWordCycle(unittest.TestCase):
         Tests if a list of statistics have back the right points.
         The list and the expected points are the following:
             [0, 0, 0]   -> 7
-            [0, 0, 1]   -> 3
-            [0, 1, 0]   -> 5
-            [0, 1, 1]   -> 2
-            [1, 0, 0]   -> 6
-            [1, 0, 1]   -> 3
-            [1, 1, 0]   -> 4
+            [0, 0, 1]   -> 2
+            [0, 1, 0]   -> 4
+            [0, 1, 1]   -> 1
+            [1, 0, 0]   -> 5
+            [1, 0, 1]   -> 2
+            [1, 1, 0]   -> 3
             [1, 1, 1]   -> 1
         """
         myWordCycle=WordCycle()        
         
         stat_list=[list(i) for i in list(itertools.product([0,1], repeat=3))]
-        expected_list=[7,3,5,2,6,3,4,1]
+        expected_list=[7,2,4,1,5,2,3,1]
         # run with all statuses -> result zipped with the expected valus -> pairs substracted from each other -> sum -> it must be 0
         self.assertEqual( sum( [ j[0]-j[1] for j in zip( [myWordCycle.get_points(i) for i in stat_list], expected_list) ] ), 0 )
 
@@ -75,11 +75,11 @@ class TestWordCycle(unittest.TestCase):
         
         stat_list={
             "a": [1,1,1],   # 1 point  (weight)
-            "b": [0,0,1],   # 3 points (weight)
+            "b": [0,0,1],   # 2 points (weight)
         }
 
         result=Counter( [myWordCycle.get_random_word(stat_list) for i in range(40000)] )
-        self.assertAlmostEqual( result["b"] / result["a"], 3.0, delta=0.08)
+        self.assertAlmostEqual( result["b"] / result["a"], 2.0, delta=0.08)
 
     def test_get_next_no_good_answer( self ):
         """
@@ -88,7 +88,7 @@ class TestWordCycle(unittest.TestCase):
         """
         myWordCycle=WordCyrcleMostHaveNoGoodAnswer()
         loop=300000
-        result=Counter([myWordCycle.get_next()[1] for i in range(loop)])
+        result=Counter([myWordCycle.get_next()[1][1] for i in range(loop)])
         self.assertAlmostEqual( loop/3, result['aaa'], delta=600)
         self.assertAlmostEqual( loop/3, result['bbb'], delta=600)
         self.assertAlmostEqual( 0.0, result['ccc'], delta=0)
@@ -102,12 +102,38 @@ class TestWordCycle(unittest.TestCase):
         """
         myWordCycle=WordCyrcleAllHaveGoodAnswer()
         loop=40000
-        result=Counter([myWordCycle.get_next()[1] for i in range(loop)])
+        result=Counter([myWordCycle.get_next()[1][1] for i in range(loop)])
         self.assertAlmostEqual(result['aaa']/loop, 1/10, delta=0.01)
         self.assertAlmostEqual(result['bbb']/loop, 2/10, delta=0.01)
         self.assertAlmostEqual(result['ccc']/loop, 3/10, delta=0.01)
         self.assertAlmostEqual(result['ddd']/loop, 4/10, delta=0.01)
-        
+    
+    def test_check_answer_true( self ):
+        """
+        Checks if I get True return and empty differece list 
+        when all answer equals to the question
+        """
+        myWordCycle=WordCycle()
+        question=("1",['v', 'aaa', ['ABCDE', 'FGHI', 'JKL', 'MN', 'O']])
+        answer=['ABCDE', 'FGHI', 'JKL', 'MN', 'O']
+        result=myWordCycle.check_answer(question, answer)
+        self.assertTrue(result[0])
+        self.assertEqual(sum([1 for i in result[1] if len(i) != 0]), 0 )
+ 
+    def test_check_answer_false( self ):
+        """
+        Checks if I get False return and the corresponding difference list
+        when some answers are different to the questions
+        """
+        myWordCycle=WordCycle()
+        question=("1",['v', 'aaa', ['ABCDE', 'FGHI', 'JKL', 'MN', 'O']])
+        answer=['ACBDE', 'FGHJ', 'IKL', 'MN', 'O']
+        result=myWordCycle.check_answer(question, answer)
+        self.assertFalse(result[0])
+        self.assertEqual(result[1][0],[1,2])
+        self.assertEqual(result[1][1],[3])
+        self.assertEqual(result[1][2],[0])
+           
 
     #Runs after every testcase - anyway	
     def tearDown(self): 
@@ -126,7 +152,6 @@ class WordCyrcleMostHaveNoGoodAnswer(WordCycle):
             "3":[0,1,0],
             "4":[0,0,0],
         }
-
         self.word_dict={
             "1":('v', 'aaa', ['AAA']),
             "2":('v', 'bbb', ['BBB']),
@@ -138,11 +163,10 @@ class WordCyrcleAllHaveGoodAnswer(WordCycle):
     def __init__(self):
         self.recent_stat={
             "1":[1,1,1],    # 1 point => 1/10 probability
-            "2":[0,1,1],    # 2 points => 2/10 probability
-            "3":[0,0,1],    # 3 points => 3/10 probability
-            "4":[1,1,0],    # 4 points => 4/10 probability
+            "2":[1,0,1],    # 2 points => 2/10 probability
+            "3":[1,1,0],    # 3 points => 3/10 probability
+            "4":[0,1,0],    # 4 points => 4/10 probability
         }
-
         self.word_dict={
             "1":('v', 'aaa', ['AAA']),
             "2":('v', 'bbb', ['BBB']),
@@ -150,6 +174,14 @@ class WordCyrcleAllHaveGoodAnswer(WordCycle):
             "4":('v', 'ddd', ['DDD'])
         }
 
+(7, [0, 0, 0]), 
+(2, [0, 0, 1]), 
+(4, [0, 1, 0]), 
+(1, [0, 1, 1]), 
+(5, [1, 0, 0]), 
+(2, [1, 0, 1]), 
+(3, [1, 1, 0]), 
+(1, [1, 1, 1])
 
 if __name__ == "__main__":
 	unittest.main()

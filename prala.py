@@ -8,22 +8,25 @@ class WordCycle(object):
     LINE_SPLITTER=":"
     WORD_SPLITTER=","
 
-
     def __init__(self):
+        """
+
+        """
         base_language="hu"
         learn_leanguage="sv"
         dict_name="base"
         part_of_speach_filter="v"
         extra_filter=""
 
-        file_name=dict_name+"_"+base_language+"_"+learn_leanguage+"." + self.__class__.DICT_EXT
+        self.dict_file_name=dict_name+"_"+base_language+"_"+learn_leanguage+"." + self.__class__.DICT_EXT
+        self.stat_file_name=dict_name+"_"+base_language+"_"+learn_leanguage
 
         #
         # read, parse and filter the necesarry words
         #
         # output: word_dict
         try:
-            with open( file_name ) as f:
+            with open( self.dict_file_name ) as f:
                 self.word_dict={}
                 for line in f:
                     element_list=line.strip().split(self.__class__.LINE_SPLITTER)
@@ -36,7 +39,7 @@ class WordCycle(object):
 
         #now in the word_dict found all filtered words by line
 
-        with shelve.open(dict_name+"_"+base_language+"_"+learn_leanguage, writeback=True) as db:
+        with shelve.open(self.stat_file_name, writeback=True) as db:
 
             #
             # get the statistics for the filtered word list
@@ -44,12 +47,13 @@ class WordCycle(object):
             # output: db
             self.recent_stat={}
 
-            for word_id, word_values in self.word_dict.items():
+            for word_id, _ in self.word_dict.items():
         
                 # create the record if it does not exist
                 try:
                     # remove all empty tuples
-                    db[word_id] = [t for t in db[word_id] if all(t)]
+                    db[word_id] = [t for t in db[word_id] if not all(t)]
+
                 except Exception as e:
 
                     #as there has not been record creates an empty
@@ -58,7 +62,23 @@ class WordCycle(object):
                 #append the actual empty list for statistics
                 db[word_id].append([])
     
+                #updates
                 self.recent_stat[word_id]=db[word_id][-1]
+
+    def set_answer(self, word_id, success):
+        """
+        input:  word_id: string
+                success: boolean
+                    True    -good answer
+                    False   -wrong anser
+        """
+        with shelve.open(self.stat_file_name, writeback=True) as db:
+
+            #updates db
+            db[word_id][-1].append(1 if success else 0)
+
+            #updates recent_stat variable
+            self.recent_stat[word_id]=db[word_id][-1]
 
     def get_next(self):
         """
@@ -70,6 +90,15 @@ class WordCycle(object):
         """
         word_id=self.get_random_word(self.recent_stat)
         return word_id, self.word_dict[ word_id ]
+
+    def get_recent_stat(self, word_id):
+        """
+        Gives back the recent statistics of a word by id
+
+        input:  word_id: string
+        output: tuple of recent statistics (1,0,0,1)                    
+        """
+        return self.recent_stat[word_id]
 
     def check_answer(self, question, answer):
         """

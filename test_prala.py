@@ -134,7 +134,15 @@ class TestWordCycle(unittest.TestCase):
         self.assertEqual(result[1][1],[3])
         self.assertEqual(result[1][2],[0])
            
-
+    def test_set_answer( self ):
+        """
+        """
+        myWordCycle=WordCycle()
+        myWordCycle.set_answer("1", True)
+        myWordCycle.set_answer("1", False)
+        myWordCycle.set_answer("1", True)
+        self.assertEqual( myWordCycle.get_recent_stat("1"), [1,0,1])
+       
     #Runs after every testcase - anyway	
     def tearDown(self): 
         pass

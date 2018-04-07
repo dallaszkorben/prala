@@ -4,22 +4,31 @@ import random
 import numpy as np
 
 class WordCycle(object):
-    DICT_EXT="dic"
+    DICT_EXT="dict"
     LINE_SPLITTER=":"
     WORD_SPLITTER=","
 
-    def __init__(self):
+    def __init__(self, file_name, base_language, learning_language):
+        """
+        Opens the dictionary, 
+        selects the set of the words usin filter
+        Opens the statistics file
+        Pair the statistics to the words
+        creates two instance variables:
+            word_dict   <dictionary>
+                            "id": ["part_of_speach", "base_word", [[word, and, its, forms]]]
+            recent_stat <dictionary>
+                            "id": [[1,0,0,1],[0, 0, 1]]
         """
 
-        """
-        base_language="hu"
-        learn_leanguage="sv"
-        dict_name="base"
         part_of_speach_filter="v"
         extra_filter=""
 
-        self.dict_file_name=dict_name+"_"+base_language+"_"+learn_leanguage+"." + self.__class__.DICT_EXT
-        self.stat_file_name=dict_name+"_"+base_language+"_"+learn_leanguage
+        self.base_language=base_language
+        self.learning_language=learning_language
+
+        self.dict_file_name=file_name+"." + self.__class__.DICT_EXT
+        self.stat_file_name=file_name
 
         #
         # read, parse and filter the necesarry words
@@ -63,7 +72,7 @@ class WordCycle(object):
                 db[word_id].append([])
     
                 #updates
-                self.recent_stat[word_id]=db[word_id][-1]
+                self.recent_stat[word_id]=db[word_id][-1]   
 
     def set_answer(self, word_id, success):
         """
@@ -100,11 +109,9 @@ class WordCycle(object):
         """
         return self.recent_stat[word_id]
 
-    def check_answer(self, question, answer):
+    def check_answer(self, word_id, answer):
         """
-        input:  question: tuple
-                    word id
-                    [part_of_speach, translation,  [word, and, its, forms]]
+        input:  word_id: string
                 answer: list
                     [word, and, its, forms]
 
@@ -114,8 +121,8 @@ class WordCycle(object):
                 list
                     [first, wrong, position, of, words]
         """
-
-        zipped_list= list(zip( question[1][2], answer + [" "*len(i) for i in question[1][2]][len(answer):] ))
+        question=self.word_dict[word_id][2]
+        zipped_list= list(zip( question, answer + [" "*len(i) for i in question][len(answer):] ))
         diff_list=[[i for i in range(len(j[1])) if j[1][i] != j[0][i]] for j in zipped_list]
         if sum([1 for i in diff_list if len(i)!=0]) == 0:
             return True, diff_list

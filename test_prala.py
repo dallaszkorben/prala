@@ -24,7 +24,7 @@ class TestWordCycle(unittest.TestCase):
 
     #Runs before every testcase
     def setUp(self): 
-        self.myWordCycle=WordCycle(TestWordCycle.BASE_NAME, 'hu', 'sv') 
+        self.myWordCycle=WordCycle(TestWordCycle.BASE_NAME, 'hungarian', 'swedish') 
 
     def test_get_points( self ):
         """
@@ -39,7 +39,7 @@ class TestWordCycle(unittest.TestCase):
             [1, 1, 0]   -> 3
             [1, 1, 1]   -> 1
         """
-        #myWordCycle=WordCycle(TestWordCycle.BASE_NAME, 'hu', 'sv')        
+        #myWordCycle=WordCycle(TestWordCycle.BASE_NAME, 'hungarian', 'swedish')        
         
         stat_list=[list(i) for i in list(itertools.product([0,1], repeat=3))]
         expected_list=[7,2,4,1,5,2,3,1]
@@ -51,7 +51,7 @@ class TestWordCycle(unittest.TestCase):
         Tests if there is about 50%/50% chance to get the words
         which had not got good answer yet
         """
-        #myWordCycle=WordCycle(TestWordCycle.BASE_NAME, 'hu', 'sv')       
+        #myWordCycle=WordCycle(TestWordCycle.BASE_NAME, 'hungarian', 'swedish')       
         
         stat_list={
             "a": [0,0,0],   # no good answer
@@ -67,7 +67,7 @@ class TestWordCycle(unittest.TestCase):
         which had got a good answer
         """
 
-        #myWordCycle=WordCycle(TestWordCycle.BASE_NAME, 'hu', 'sv')        
+        #myWordCycle=WordCycle(TestWordCycle.BASE_NAME, 'hungarian', 'swedish')        
         
         stat_list={
             "a": [0,0,0],   # no good answer
@@ -132,7 +132,7 @@ class TestWordCycle(unittest.TestCase):
         self.assertTrue(result[0])
         self.assertEqual(sum([1 for i in result[1] if len(i) != 0]), 0 )
  
-    def test_check_answer_false( self ):
+    def test_check_answer_false_shorter_list( self ):
         """
         Checks if I get False return and the corresponding difference list
         when some answers are different to the questions
@@ -146,7 +146,22 @@ class TestWordCycle(unittest.TestCase):
         self.assertEqual(result[1][1],[])
         self.assertEqual(result[1][2],[1,3])
         self.assertEqual(result[1][4],[0])
-           
+
+    def test_check_answer_false_longer_list( self ):
+        """
+        Checks if I get False return and the corresponding difference list
+        when the answer list is longer than the question
+        """
+        #question="1":('v', 'aaa', ['Abc', 'Adef', 'Aghij', 'Aklmnopq', 'A'])
+        answer=['Abc', 'Adef', 'Aghij', 'Aklmnopq', 'A', 'Ab']
+        result=self.myWordCycle.check_answer("1", answer)
+        self.assertFalse(result[0])
+        #self.assertEqual(result[1][0],[1])
+        #self.assertEqual(result[1][1],[])
+        #self.assertEqual(result[1][2],[1,3])
+        #self.assertEqual(result[1][4],[0])
+
+
     def test_set_answer( self ):
         """
         """
@@ -156,6 +171,12 @@ class TestWordCycle(unittest.TestCase):
         self.myWordCycle.set_answer("1", True)
         self.assertEqual( self.myWordCycle.get_recent_stat("1"), [1,0,1])
        
+    def test_say_out_question(self):
+        self.myWordCycle.say_out_question("megy")
+
+    def test_say_out_answer(self):
+        self.myWordCycle.say_out_answer(["gå", "går", "gick", "gått", "gå"])
+
     #Runs after every testcase - anyway	
     def tearDown(self): 
         pass

@@ -100,6 +100,34 @@ class WordCycle(object):
         word_id=self.get_random_word(self.recent_stat)
         return word_id, self.word_dict[ word_id ]
 
+    def say_out_question(self, question):
+        """
+        It says out the text in the list on the 'base language'
+        input:  question: string
+        """
+        engine = pyttsx.init()
+
+        engine.setProperty('voice', self.base_language)		#voice id
+        #engine.setProperty('rate', 150)
+        #engine.setProperty('volume', 1)
+        engine.say(question)
+        engine.runAndWait()
+
+    def say_out_answer(self, answer):
+        """
+        It says out the text in the list on the 'learning language'
+        input:  answer: list
+                ["word", "and", "its", "forms"]
+        """
+        engine = pyttsx.init()
+
+        engine.setProperty('voice', self.learning_language)		#voice id
+        #engine.setProperty('rate', 150)
+        #engine.setProperty('volume', 1)
+        [engine.say(i) for i in answer]
+        engine.runAndWait()
+        
+
     def get_recent_stat(self, word_id):
         """
         Gives back the recent statistics of a word by id
@@ -182,6 +210,20 @@ class WordCycle(object):
 
         return points
 
+
+class Line(object):
+
+    def __init__(self):
+        pass
+
+    def say_out_question(self):
+        pass
+
+    def say_out_answer(self):
+        pass
+
+    def check_answer(self, stat):
+        pass
 
 #if __name__ == "__main__":
     #myWordCycle=WordCycle()

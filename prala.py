@@ -191,7 +191,7 @@ class Record(object):
     def check_answer(self, user_answer):
         """
         input:  user_answer: list
-                    [word, and, its, forms]
+                    ['word', 'and', 'its', 'forms']
 
         output: boolean
                     True:   if the user_answer is acceptable
@@ -199,11 +199,8 @@ class Record(object):
                 list
                     [first, wrong, position, of, words]
         """
-        #answer=self.word[2]
-
         zipped_list= list(zip( self.learning_words + [" "*len(i) for i in user_answer][len(self.learning_words):], user_answer + [" "*len(i) for i in self.learning_words][len(user_answer):] ) )
-        #zipped_list= list(zip( answer, user_answer + [" "*len(i) for i in answer][len(user_answer):] ))
-        diff_list=[[i for i in range(len(j[1])) if j[1][i] != j[0][i]] for j in zipped_list]
+        diff_list=[[i for i in range(min(len(j[1]), len(j[0]))) if j[1][i] != j[0][i]] for j in zipped_list]
         if sum([1 for i in diff_list if len(i)!=0]) == 0:
             return True, diff_list
         else:

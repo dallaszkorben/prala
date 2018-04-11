@@ -171,6 +171,52 @@ class TestWordCycle(unittest.TestCase):
         self.assertEqual(result[1][4],[])
         self.assertEqual(result[1][5],[0, 1, 2, 3])
 
+    def test_check_answer_false_shorter_answer( self ):
+        """
+        Checks if I get False return and the corresponding difference list
+        when the answer list has at least one shorter answer than the base
+        """
+        
+        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
+        
+        answer=['Abc', 'Adef', 'Agh', 'Aklmnopq', 'A']
+        result=self.myFilteredDictionary.get_next_random_record().check_answer(answer)
+        self.assertFalse(result[0])
+        self.assertEqual(result[1][0],[])
+        self.assertEqual(result[1][1],[])
+        self.assertEqual(result[1][2],[3,4])
+        self.assertEqual(result[1][3],[])
+        self.assertEqual(result[1][4],[])
+
+    def test_check_answer_false_longer_answer( self ):
+        """
+        Checks if I get False return and the corresponding difference list
+        when the answer list has at least one longer answer than the base
+        """        
+        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v')
+        answer=['Abc', 'Adef', 'Aghijkl', 'Aklmnopq', 'A']
+        result=self.myFilteredDictionary.get_next_random_record().check_answer(answer)
+        self.assertFalse(result[0])
+        self.assertEqual(result[1][0],[])
+        self.assertEqual(result[1][1],[])
+        self.assertEqual(result[1][2],[5,6])
+        self.assertEqual(result[1][3],[])
+        self.assertEqual(result[1][4],[])
+
+    def test_check_answer_false_empty_answer( self ):
+        """
+        Checks if I get False return and the corresponding difference list
+        when the answer list has at least one empty answer
+        """        
+        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v')
+        answer=['Abc', '', 'Aghij', 'Aklmnopq', 'A']
+        result=self.myFilteredDictionary.get_next_random_record().check_answer(answer)
+        self.assertFalse(result[0])
+        self.assertEqual(result[1][0],[])
+        self.assertEqual(result[1][1],[0,1,2,3])
+        self.assertEqual(result[1][2],[])
+        self.assertEqual(result[1][3],[])
+        self.assertEqual(result[1][4],[])
 
     def test_add_result_to_stat( self ):
         """

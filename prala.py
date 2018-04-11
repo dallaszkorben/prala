@@ -200,7 +200,9 @@ class Record(object):
                     [first, wrong, position, of, words]
         """
         zipped_list= list(zip( self.learning_words + [" "*len(i) for i in user_answer][len(self.learning_words):], user_answer + [" "*len(i) for i in self.learning_words][len(user_answer):] ) )
-        diff_list=[[i for i in range(min(len(j[1]), len(j[0]))) if j[1][i] != j[0][i]] for j in zipped_list]
+        zipped_list=[ (i[0] + (" "*len(i[1]))[len(i[0]):], i[1] + (" "*len(i[0]))[len(i[1]):] ) for i in zipped_list]
+
+        diff_list=[[i for i in range(len(j[1])) if j[1][i] != j[0][i]] for j in zipped_list]
         if sum([1 for i in diff_list if len(i)!=0]) == 0:
             return True, diff_list
         else:

@@ -144,8 +144,9 @@ class FiteredDictionary(object):
             -number of the wrong answers after a good user_answer
     
         input:
-                recent_stat: [list] -  0: bad user_answer
-                                1: good user_answer
+                [list]: recent_stat: 
+                            -   0: bad user_answer
+                            -   1: good user_answer
         """
         points=1
         # counts not knowing last n times(ends with 0)
@@ -159,6 +160,15 @@ class FiteredDictionary(object):
 
         return points
 
+    def get_recent_stat_list(self):
+        """
+        Gives back the statistics of the last cycle
+
+        output: [list]
+                        list[0]:    numbers of the questions
+                        list[1]:    numbers of the good answers
+        """
+        pass
 
 class Record(object):
 
@@ -182,7 +192,7 @@ class Record(object):
 
     def get_recent_stat(self):
         """
-        Gives back the recent statistics of a word by id
+        Gives back the recent statistics of the actual Record
 
         output: tuple of recent statistics (1,0,0,1)                    
         """

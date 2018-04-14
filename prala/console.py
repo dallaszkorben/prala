@@ -31,8 +31,10 @@ class ConsolePrala(object):
 
         self.clear_console()
         record=self.myFilteredDictionary.get_next_random_record()
+
+        # shows the question word
         self.out_question(record.base_word + " - (" + str(len(record.learning_words) ) + ")")
-        record.say_out_base()    
+        record.say_out_base()
         line=[ i.strip() for i in self.get_input().split(",")]
         result=record.check_answer(line)
         if result[0]:
@@ -85,7 +87,7 @@ class ConsolePrala(object):
 
     def out_correction(self, result, line, learning_words):
         sys.stdout.write(type(self).POSITION_CORRECTION)
-    
+
         zipped_list=list(zip( line + ["_"*len(i) for i in learning_words][len(line):], learning_words + [" "*len(i) for i in line][len(learning_words):] ) )
         for word_failed_position_pair in zip( [i[0] + ("_"*len(i[1]))[len(i[0]):] for i in zipped_list], result ):
             for pos in range(len(word_failed_position_pair[0])):
@@ -98,7 +100,23 @@ class ConsolePrala(object):
         sys.stdout.write(type(self).COLOR_DEFAULT)
 
 
-cp=ConsolePrala("base", 'hungarian', 'swedish')
-while True:
-    cp.round()
+    # this need to us the class with "with"
+    def __enter__(self):
+       return self
 
+    # this need to us the class with "with"
+    # the reason of using it "with" is to get back the default coursor color at the end
+    def __exit__(self, exc_type, value, traceback):
+      sys.stdout.write(type(self).COLOR_DEFAULT)
+      print("")
+      return isinstance(value, KeyboardInterrupt)	#Supress the KeyboardInterrupt exception
+
+def console():
+
+   # the reason of using it "with" is to get back the default coursor color at the end
+   with ConsolePrala("base", 'hungarian', 'swedish') as cp:
+      while True:
+         cp.round()
+
+if __name__ == "__main__":
+    console()

@@ -1,6 +1,12 @@
 /env
-**/__pycache__/
+
 .vscode
-*.dat
-*.bak
-*.dir
+
+**/*.dat
+**/*.bak
+**/*.dir
+
+/dist
+/prala.egg-info
+
+**/__pycache__/

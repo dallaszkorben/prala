@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
       name='prala',
-      version='0.0.11',
+      version='0.0.23',
       description='Practice Language',
       long_description=open('README.md').read(),
       url='http://github.com/dallaszkorben/prala',
@@ -12,8 +12,10 @@ setup(
       classifiers =[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
+        "Operating System :: OS Independent",
       ],
       packages = find_packages(),
+      setup_requires=["numpy", "pyttsx3"],
       install_requires=[
           'pyttsx3', 'numpy',
       ],

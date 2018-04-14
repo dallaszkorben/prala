@@ -7,6 +7,8 @@
 **/*.dir
 
 /dist
+/build
 /prala.egg-info
+.eggs
 
 **/__pycache__/

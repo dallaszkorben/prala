@@ -1,4 +1,5 @@
 import sys
+import re
 from prala.core import FilteredDictionary
 from prala.core import Record
 
@@ -37,7 +38,10 @@ class ConsolePrala(object):
         # shows the question word
         self.out_question(record.base_word + " - (" + str(len(record.learning_words) ) + ")")
         record.say_out_base()
-        line=[ i.strip() for i in self.get_input().split(",")]
+
+        # replace every alphabetic character to _ to show under cursor
+        template=re.sub("[^, \!]", "_", ", ".join(record.learning_words))
+        line=[ i.strip() for i in self.get_input(template).split(",")]
         result=record.check_answer(line)
         # write back the stat
         self.myFilteredDictionary.add_result_to_stat(record.word_id,result[0])
@@ -65,9 +69,12 @@ class ConsolePrala(object):
         print(question)
         sys.stdout.write(type(self).COLOR_DEFAULT)
 
-    def get_input(self):
+    def get_input(self, template):
         sys.stdout.write(type(self).POSITION_INPUT)
         sys.stdout.write(type(self).COLOR_INPUT)
+        print(template)
+        sys.stdout.write(type(self).POSITION_INPUT)
+        
         return input()
 
     def out_result_status(self, status):

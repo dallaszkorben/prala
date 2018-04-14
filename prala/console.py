@@ -13,12 +13,14 @@ class ConsolePrala(object):
     COLOR_STAT="\033[1;33m"
     COLOR_CORRECTION_RIGHT="\033[0;37m"
     COLOR_CORRECTION_WRONG="\033[1;31m"
+    COLOR_STAT="\033[1;33m"
 
     POSITION_QUESTION="\033[10;10H"
     POSITION_INPUT="\033[11;10H"
     POSITION_RESULT_STATUS="\033[12;10H"
     POSITION_CORRECTION="\033[18;10H"
     POSITION_GOOD_ANSWER="\033[16;10H"
+    POSITION_STAT="\033[21;10H"
 
     STATUS_WRONG="WRONG"
     STATUS_RIGHT="RIGHT"
@@ -37,12 +39,21 @@ class ConsolePrala(object):
         record.say_out_base()
         line=[ i.strip() for i in self.get_input().split(",")]
         result=record.check_answer(line)
+        # write back the stat
+        self.myFilteredDictionary.add_result_to_stat(record.word_id,result[0])
         if result[0]:
             self.out_good_answer_right(record.learning_words)
         else:
             self.out_correction(result[1], line, record.learning_words)
             self.out_good_answer_wrong(record.learning_words)
+
+        #shows statistics
+        overall=self.myFilteredDictionary.get_recent_stat_list()
+        overall_str=str(overall[1]) + "/" + str(overall[0]) + "/" + str(overall[2]) + " (" + str(int(100 * overall[1] / overall[0])) + "%)"
+        actual=record.get_recent_stat()        
+        self.out_stat(overall_str, actual)
         record.say_out_learning()
+        #waitin for a click to continue
         input()
 
     def clear_console(self):
@@ -84,7 +95,16 @@ class ConsolePrala(object):
 
         sys.stdout.write(type(self).COLOR_DEFAULT)
         self.out_result_status(False)
+   
+    def out_stat(self, overall, specific):
+        sys.stdout.write(type(self).POSITION_STAT)
+        sys.stdout.write(type(self).COLOR_STAT)
 
+        print( overall, specific)
+
+        sys.stdout.write(type(self).COLOR_DEFAULT)
+        
+        
     def out_correction(self, result, line, learning_words):
         sys.stdout.write(type(self).POSITION_CORRECTION)
 

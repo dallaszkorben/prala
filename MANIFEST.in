@@ -1,1 +1,2 @@
 include prala/*.dict
+include *.dict

@@ -1,6 +1,6 @@
 import unittest
-from prala import FiteredDictionary
-from prala import Record
+from core import FilteredDictionary
+from core import Record
 
 import itertools
 from collections import Counter
@@ -9,7 +9,7 @@ import os
 
 class TestWordCycle(unittest.TestCase):
     BASE_NAME="testfile"
-    DICT_FILE=BASE_NAME + "." + FiteredDictionary.DICT_EXT
+    DICT_FILE=BASE_NAME + "." + FilteredDictionary.DICT_EXT
 
     # Runs at the beginning of the test suit
     @classmethod
@@ -22,12 +22,12 @@ class TestWordCycle(unittest.TestCase):
         }
 
         with open( TestWordCycle.DICT_FILE, "w" ) as f:
-            print(*[FiteredDictionary.RECORD_SPLITTER.join([k]+[v[0]]+[v[1]]+[", ".join(v[2])]) for k, v in content.items()], sep='\n', file=f)
+            print(*[FilteredDictionary.RECORD_SPLITTER.join([k]+[v[0]]+[v[1]]+[", ".join(v[2])]) for k, v in content.items()], sep='\n', file=f)
 
     #Runs before every testcase
     def setUp(self): 
         pass
-        #self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish') 
+        #self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish') 
 
     def test_get_points( self ):
         """
@@ -42,7 +42,7 @@ class TestWordCycle(unittest.TestCase):
             [1, 1, 0]   -> 3
             [1, 1, 1]   -> 1
         """
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish') 
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish') 
 
         stat_list=[list(i) for i in list(itertools.product([0,1], repeat=3))]
         expected_list=[7,2,4,1,5,2,3,1]
@@ -54,7 +54,7 @@ class TestWordCycle(unittest.TestCase):
         Tests if there is about 50%/50% chance to get the words
         which had not got good answer yet
         """
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish') 
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish') 
         
         stat_list={
             "a": [0,0,0],   # no good answer
@@ -70,7 +70,7 @@ class TestWordCycle(unittest.TestCase):
         which had got a good answer
         """
 
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish') 
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish') 
         
         stat_list={
             "a": [0,0,0],   # no good answer
@@ -86,7 +86,7 @@ class TestWordCycle(unittest.TestCase):
         are proportional to the point (weight) what they have.
         """
 
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish') 
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish') 
         
         stat_list={
             "a": [1,1,1],   # 1 point  (weight)
@@ -130,7 +130,7 @@ class TestWordCycle(unittest.TestCase):
         when all answer equals to the base
         """
         
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
         
         answer=['Abc', 'Adef', 'Aghij', 'Aklmnopq', 'A']
         result=self.myFilteredDictionary.get_next_random_record().check_answer(answer)
@@ -143,7 +143,7 @@ class TestWordCycle(unittest.TestCase):
         when some answers are different to the bases
         """
 
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
         
         answer=['Adc', 'Adef', 'Adhlj', 'Aklmnopq']
         result=self.myFilteredDictionary.get_next_random_record().check_answer(answer)
@@ -159,7 +159,7 @@ class TestWordCycle(unittest.TestCase):
         when the answer list is longer than the base
         """
 
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
         
         answer=['Abc', 'Adef', 'Aghij', 'Aklmnopq', 'A', 'Abcd']
         result=self.myFilteredDictionary.get_next_random_record().check_answer(answer)
@@ -177,7 +177,7 @@ class TestWordCycle(unittest.TestCase):
         when the answer list has at least one shorter answer than the base
         """
         
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
         
         answer=['Abc', 'Adef', 'Agh', 'Aklmnopq', 'A']
         result=self.myFilteredDictionary.get_next_random_record().check_answer(answer)
@@ -193,7 +193,7 @@ class TestWordCycle(unittest.TestCase):
         Checks if I get False return and the corresponding difference list
         when the answer list has at least one longer answer than the base
         """        
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v')
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v')
         answer=['Abc', 'Adef', 'Aghijkl', 'Aklmnopq', 'A']
         result=self.myFilteredDictionary.get_next_random_record().check_answer(answer)
         self.assertFalse(result[0])
@@ -208,7 +208,7 @@ class TestWordCycle(unittest.TestCase):
         Checks if I get False return and the corresponding difference list
         when the answer list has at least one empty answer
         """        
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v')
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v')
         answer=['Abc', '', 'Aghij', 'Aklmnopq', 'A']
         result=self.myFilteredDictionary.get_next_random_record().check_answer(answer)
         self.assertFalse(result[0])
@@ -221,7 +221,7 @@ class TestWordCycle(unittest.TestCase):
     def test_add_result_to_stat( self ):
         """
         """
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
         
         record=self.myFilteredDictionary.get_next_random_record()
         self.myFilteredDictionary.add_result_to_stat(record.word_id, True)
@@ -229,12 +229,42 @@ class TestWordCycle(unittest.TestCase):
         self.myFilteredDictionary.add_result_to_stat(record.word_id, True)
         self.assertEqual( record.get_recent_stat(), [1,0,1] )
        
+    def test_(self):
+ 
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='') 
+        
+        record=self.myFilteredDictionary.get_next_random_record()
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, True)
+
+        record=self.myFilteredDictionary.get_next_random_record()
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, True)
+
+        record=self.myFilteredDictionary.get_next_random_record()
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, True)
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, True)
+
+        record=self.myFilteredDictionary.get_next_random_record()
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, True)
+
+        res_stat=self.myFilteredDictionary.get_recent_stat_list()
+        self.assertEqual(res_stat[0], 13)
+        self.assertEqual(res_stat[1], 5)
+        self.assertEqual(res_stat[2], 4)
+
     def _test_say_out_base(self):
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
         self.myFilteredDictionary.get_next_random_record().say_out_base()
 
     def _test_say_out_learning(self):
-        self.myFilteredDictionary=FiteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
+        self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
         self.myFilteredDictionary.get_next_random_record().say_out_learning()
 
     #Runs after every testcase - anyway	
@@ -249,7 +279,7 @@ class TestWordCycle(unittest.TestCase):
         os.remove(TestWordCycle.BASE_NAME+".dat")
         os.remove(TestWordCycle.BASE_NAME+".dir")
 
-class WordCyrcleMostHaveNoGoodAnswer(FiteredDictionary):
+class WordCyrcleMostHaveNoGoodAnswer(FilteredDictionary):
     def __init__(self):
         self.base_language="hungarian"
         self.learning_language="swedish"
@@ -266,7 +296,7 @@ class WordCyrcleMostHaveNoGoodAnswer(FiteredDictionary):
             "4":('v', 'ddd', ['DDD'])
         }
 
-class WordCyrcleAllHaveGoodAnswer(FiteredDictionary):
+class WordCyrcleAllHaveGoodAnswer(FilteredDictionary):
     
     def __init__(self):
         self.base_language="hungarian"

@@ -164,11 +164,13 @@ class FilteredDictionary(object):
         """
         Gives back the statistics of the last cycle
 
-        output: [list]
-                        list[0]:    numbers of the questions
-                        list[1]:    numbers of the good answers
+        output: [tuple]
+                        tuple[0]:   numbers of the asked questions
+                        tuple[1]:   numbers of the good answers
+                        tuple[2]:   numbers of not asked questions (all questions-tupple[0])
         """
-        pass
+        full_list=[ i for k, v in self.recent_stat_list.items() for i in v]
+        return(len(full_list), sum(full_list), max(0, len(self.recent_stat_list)-len(full_list)))
 
 class Record(object):
 

@@ -1,6 +1,6 @@
 import sys
-from prala import FiteredDictionary
-from prala import Record
+from prala.core import FilteredDictionary
+from prala.core import Record
 
 class ConsolePrala(object):
     COLOR_DEFAULT="\033[00m"
@@ -25,7 +25,7 @@ class ConsolePrala(object):
 
     def __init__( self, file_name, base_language, learning_language, part_of_speach_filter="" ):
 
-        self.myFilteredDictionary=FiteredDictionary("base", 'hungarian', 'swedish') 
+        self.myFilteredDictionary=FilteredDictionary("base", 'hungarian', 'swedish') 
 
     def round(self):
 
@@ -111,12 +111,12 @@ class ConsolePrala(object):
       print("")
       return isinstance(value, KeyboardInterrupt)	#Supress the KeyboardInterrupt exception
 
-def console():
+def main():
 
    # the reason of using it "with" is to get back the default coursor color at the end
    with ConsolePrala("base", 'hungarian', 'swedish') as cp:
       while True:
          cp.round()
 
-if __name__ == "__main__":
-    console()
+#if __name__ == "__main__":
+#    main()

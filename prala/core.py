@@ -3,7 +3,7 @@ import shelve
 import random
 import numpy as np
 
-class FiteredDictionary(object):
+class FilteredDictionary(object):
     DICT_EXT="dict"
     RECORD_SPLITTER=":"
     WORD_SPLITTER=","

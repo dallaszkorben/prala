@@ -167,7 +167,7 @@ class FilteredDictionary(object):
         output: [tuple]
                         tuple[0]:   numbers of the asked questions
                         tuple[1]:   numbers of the good answers
-                        tuple[2]:   numbers of not asked questions (all questions-tupple[0])
+                        tuple[2]:   numbers of not asked questions (all questions-good answers)
         """
         full_list=[ i for k, v in self.recent_stat_list.items() for i in v]
         return(len(full_list), sum(full_list), max(0, len(self.recent_stat_list)-sum(full_list)))

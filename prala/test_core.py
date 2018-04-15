@@ -244,7 +244,7 @@ class TestWordCycle(unittest.TestCase):
 
         record=self.myFilteredDictionary.get_next_random_record()
         self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
-        self.myFilteredDictionary.add_result_to_stat(record.word_id, True)
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
         self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
         self.myFilteredDictionary.add_result_to_stat(record.word_id, True)
 
@@ -252,12 +252,12 @@ class TestWordCycle(unittest.TestCase):
         self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
         self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
         self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
-        self.myFilteredDictionary.add_result_to_stat(record.word_id, True)
+        self.myFilteredDictionary.add_result_to_stat(record.word_id, False)
 
         res_stat=self.myFilteredDictionary.get_recent_stat_list()
         self.assertEqual(res_stat[0], 13)
-        self.assertEqual(res_stat[1], 5)
-        self.assertEqual(res_stat[2], 4)
+        self.assertEqual(res_stat[1], 3)
+        self.assertEqual(res_stat[2], 1)
 
     def _test_say_out_base(self):
         self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 

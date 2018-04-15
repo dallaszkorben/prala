@@ -1,7 +1,11 @@
 import sys
+import os
 import re
+from iso639 import to_name
+
 from prala.core import FilteredDictionary
 from prala.core import Record
+from prala.accessories import Property
 
 class ConsolePrala(object):
     COLOR_DEFAULT="\033[00m"
@@ -28,7 +32,7 @@ class ConsolePrala(object):
 
     def __init__( self, file_name, base_language, learning_language, part_of_speach_filter="" ):
 
-        self.myFilteredDictionary=FilteredDictionary("base", 'hungarian', 'swedish') 
+        self.myFilteredDictionary=FilteredDictionary(file_name, base_language, learning_language, part_of_speach_filter) 
 
     def round(self):
 
@@ -53,7 +57,7 @@ class ConsolePrala(object):
 
         #shows statistics
         overall=self.myFilteredDictionary.get_recent_stat_list()
-        overall_str=str(overall[1]) + "/" + str(overall[0]) + "/" + str(overall[2]) + " (" + str(int(100 * overall[1] / overall[0])) + "%)"
+        overall_str=str(overall[1]) + "/" + str(overall[0]) + ("/" + str(overall[2]) if overall[2] > 0 else "") + " (" + str(int(100 * overall[1] / overall[0])) + "%)"
         actual=record.get_recent_stat()        
         self.out_stat(overall_str, actual)
         record.say_out_learning()
@@ -140,8 +144,40 @@ class ConsolePrala(object):
 
 def main():
 
+    if len(sys.argv) == 1:
+        print()
+        print("Usage:")
+        print("python " + sys.argv[0] + " dict_file_name [part_of_speech_filter]")
+        print("part of speech:")
+        print("   n     -noun")
+        print("   v     -verb")
+        print("   j     -adjective")
+        print("   b     -adverb")
+        print("   r     -pronoun")
+        print("   e     -preposition")
+        print("   c     -conjunction")
+        print("   i     -interjection")
+        print("   a     -article")
+        
+        exit()
+
+    file_name = sys.argv[1]
+
+    if len(sys.argv) >= 3:
+        part_of_speech = sys.argv[2]
+    else:
+        part_of_speech = ""
+
+    DEFALULT_BASE_LANGUAGE="en"
+    DEFALULT_LEARNING_LANGUAGE="sv"
+
+    file=os.path.join(os.getcwd(),'config.ini')
+    property=Property(file)
+    base_language=to_name(property.get('languages', 'base_language', DEFALULT_BASE_LANGUAGE)).lower()
+    learning_language=to_name(property.get('languages', 'learning_language', DEFALULT_LEARNING_LANGUAGE)).lower()    
+
    # the reason of using it "with" is to get back the default coursor color at the end
-   with ConsolePrala("base", 'hungarian', 'swedish') as cp:
+    with ConsolePrala(file_name, base_language, learning_language, part_of_speech) as cp:
       while True:
          cp.round()
 

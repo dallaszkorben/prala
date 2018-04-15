@@ -170,7 +170,7 @@ class FilteredDictionary(object):
                         tuple[2]:   numbers of not asked questions (all questions-tupple[0])
         """
         full_list=[ i for k, v in self.recent_stat_list.items() for i in v]
-        return(len(full_list), sum(full_list), max(0, len(self.recent_stat_list)-len(full_list)))
+        return(len(full_list), sum(full_list), max(0, len(self.recent_stat_list)-sum(full_list)))
 
 class Record(object):
 
@@ -225,7 +225,6 @@ class Record(object):
         It says out the text in the list on the 'base language'
         """
         engine = pyttsx.init()
-
         engine.setProperty('voice', self.base_language)		#voice id
         #engine.setProperty('rate', 150)
         #engine.setProperty('volume', 1)

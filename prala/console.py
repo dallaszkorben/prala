@@ -151,13 +151,13 @@ def main():
         print("part of speech:")
         print("   n     -noun")
         print("   v     -verb")
-        print("   j     -adjective")
+        print("   a     -adjective")
         print("   b     -adverb")
         print("   r     -pronoun")
         print("   e     -preposition")
         print("   c     -conjunction")
         print("   i     -interjection")
-        print("   a     -article")
+        print("   t     -article")
         
         exit()
 

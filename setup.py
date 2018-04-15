@@ -17,7 +17,7 @@ setup(
       packages = find_packages(),
       setup_requires=["numpy", "pyttsx3"],
       install_requires=[
-          'pyttsx3', 'numpy', 'configparser', 'os', 'iso639'
+          'pyttsx3', 'numpy', 'configparser', 'iso639'
       ],
       entry_points = {
         'console_scripts': ['pracon=prala.console:main'],

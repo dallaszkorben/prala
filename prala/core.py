@@ -2,11 +2,14 @@ import pyttsx3 as pyttsx
 import shelve
 import random
 import numpy as np
+import hashlib
 
 class FilteredDictionary(object):
     DICT_EXT="dict"
     RECORD_SPLITTER=":"
     WORD_SPLITTER=","
+
+    
 
     def __init__(self, file_name, base_language, learning_language, part_of_speach_filter=""):
         """
@@ -20,6 +23,10 @@ class FilteredDictionary(object):
             recent_stat_list <dictionary>
                             "id": [[1,0,0,1],[0, 0, 1]]
         """
+
+        POS_DICT_POS=0
+        POS_DICT_BASE=1
+        POS_DICT_LEARNING=2
 
         #part_of_speach_filter="v"
         extra_filter=""
@@ -38,9 +45,10 @@ class FilteredDictionary(object):
             with open( self.dict_file_name ) as f:
                 self.word_dict={}
                 for line in f:
+                    ln=hashlib.md5(line.encode()).hexdigest()
                     element_list=line.strip().split(self.__class__.RECORD_SPLITTER)
-                    if len(part_of_speach_filter) == 0 or element_list[1].lower() == part_of_speach_filter.lower():
-                        self.word_dict[element_list[0]]=(element_list[1], element_list[2], list(map(str.strip, element_list[3].strip().split(self.__class__.WORD_SPLITTER) ) ) )
+                    if len(part_of_speach_filter) == 0 or element_list[POS_DICT_POS].lower() == part_of_speach_filter.lower():
+                        self.word_dict[str(ln)]=(element_list[POS_DICT_POS], element_list[POS_DICT_BASE], list(map(str.strip, element_list[POS_DICT_LEARNING].strip().split(self.__class__.WORD_SPLITTER) ) ) )
                 
         except FileNotFoundError as e:
             print( e )
@@ -57,9 +65,10 @@ class FilteredDictionary(object):
             self.recent_stat_list={}
 
             for word_id, _ in self.word_dict.items():
-        
+
                 # create the record if it does not exist
                 try:
+
                     # remove all empty tuples
                     db[word_id] = [t for t in db[word_id] if not all(t)]
 

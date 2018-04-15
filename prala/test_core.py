@@ -22,7 +22,8 @@ class TestWordCycle(unittest.TestCase):
         }
 
         with open( TestWordCycle.DICT_FILE, "w" ) as f:
-            print(*[FilteredDictionary.RECORD_SPLITTER.join([k]+[v[0]]+[v[1]]+[", ".join(v[2])]) for k, v in content.items()], sep='\n', file=f)
+            #print(*[FilteredDictionary.RECORD_SPLITTER.join([k]+[v[0]]+[v[1]]+[", ".join(v[2])]) for k, v in content.items()], sep='\n', file=f)
+            print(*[FilteredDictionary.RECORD_SPLITTER.join([v[0]]+[v[1]]+[", ".join(v[2])]) for k, v in content.items()], sep='\n', file=f)
 
     #Runs before every testcase
     def setUp(self): 

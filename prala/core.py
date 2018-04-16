@@ -3,13 +3,24 @@ import shelve
 import random
 import numpy as np
 import hashlib
+from prala.accessories import Enum
 
 class FilteredDictionary(object):
     DICT_EXT="dict"
     RECORD_SPLITTER=":"
     WORD_SPLITTER=","
 
-    
+    DICT_POS=Enum(
+        POS_POS=0,
+        POS_LEARNING=1,
+        POS_BASE=2,
+    )
+
+    RECORD_POS= Enum(
+        POS_POS=0,
+        POS_LEARNING=1,
+        POS_BASE=2,
+    )
 
     def __init__(self, file_name, base_language, learning_language, part_of_speach_filter=""):
         """
@@ -19,14 +30,10 @@ class FilteredDictionary(object):
         Pair the statistics to the words
         creates two instance variables:
             word_dict   <dictionary>
-                            "id": ["part_of_speach", "base_word", [[word, and, its, forms]]]
+                            "id": ["part_of_speach", [word, and, its, forms], "base_word"]
             recent_stat_list <dictionary>
                             "id": [[1,0,0,1],[0, 0, 1]]
         """
-
-        POS_DICT_POS=0
-        POS_DICT_BASE=1
-        POS_DICT_LEARNING=2
 
         #part_of_speach_filter="v"
         extra_filter=""
@@ -47,9 +54,12 @@ class FilteredDictionary(object):
                 for line in f:
                     ln=hashlib.md5(line.encode()).hexdigest()
                     element_list=line.strip().split(self.__class__.RECORD_SPLITTER)
-                    if len(part_of_speach_filter) == 0 or element_list[POS_DICT_POS].lower() == part_of_speach_filter.lower():
-                        self.word_dict[str(ln)]=(element_list[POS_DICT_POS], element_list[POS_DICT_BASE], list(map(str.strip, element_list[POS_DICT_LEARNING].strip().split(self.__class__.WORD_SPLITTER) ) ) )
-                
+                    if len(part_of_speach_filter) == 0 or element_list[type(self).DICT_POS.POS_POS].lower() == part_of_speach_filter.lower():
+                        #self.word_dict[str(ln)]=(element_list[type(self).POS_DICT_POS], element_list[type(self).POS_DICT_BASE], list(map(str.strip, element_list[type(self).POS_DICT_LEARNING].strip().split(self.__class__.WORD_SPLITTER) ) ) )
+                        self.word_dict[str(ln)] = [None] * type(self).RECORD_POS.size()
+                        self.word_dict[str(ln)][type(self).RECORD_POS.POS_POS] = element_list[type(self).DICT_POS.POS_POS] 
+                        self.word_dict[str(ln)][type(self).RECORD_POS.POS_BASE] = element_list[type(self).DICT_POS.POS_BASE]
+                        self.word_dict[str(ln)][type(self).RECORD_POS.POS_LEARNING] = list(map(str.strip, element_list[type(self).DICT_POS.POS_LEARNING].strip().split(self.__class__.WORD_SPLITTER) ) )
         except FileNotFoundError as e:
             print( e )
             exit()
@@ -188,15 +198,15 @@ class Record(object):
             base_language       - string
             learning_language   - string
             word_id             - integer
-            word                - list:     [part_of_speach, base_word,  [word, and, its, forms]]
+            word                - list:     [part_of_speach, [word, and, its, forms], base_word]
         """
         self.base_language = base_language
         self.learning_language = learning_language
         self.word_id = word_id
         
-        self.part_of_speach = word[0]
-        self.base_word = word[1]
-        self.learning_words = word[2]
+        self.part_of_speach = word[FilteredDictionary.RECORD_POS.POS_POS]
+        self.learning_words = word[FilteredDictionary.RECORD_POS.POS_LEARNING]
+        self.base_word = word[FilteredDictionary.RECORD_POS.POS_BASE]
 
         #self.word = word
         self.recent_stat = recent_stat

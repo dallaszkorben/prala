@@ -1,6 +1,30 @@
 import configparser
 import os
 
+class Enum(object):   
+   
+    def __init__(self, **named_values):
+        self.named_values=named_values
+        for k, v in named_values.items():
+            exec("self.__class__.%s = %s" % (k, v))
+
+    def size(self):
+        return len(self.named_values)
+
+
+    
+"""
+def Enum(**named_values):
+    class ExtEnum(object):
+        def __init__(self, **nv):
+            print("itt vagyok")
+        def size(self):
+            return 5 #len(named_values)          
+
+
+    return type('Enum', (ExtEnum,), named_values)
+"""    
+
 class Property(object):
 
     def __init__(self, file):

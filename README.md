@@ -10,6 +10,8 @@ The main features are the following:
  - It ask words more often that are difficult to learn
  - It shows statistics about the wrong/good answers
  - It is possible to filter words that you want to practice
+ - It shows the pattern of the right answer (letter's positions, commas, exclamation marks)
+ - Features can be turn off (say out/show note/show pattern)
 
 
 The software can generate a _template dictionary_ but the **filling up** is the user's task.  

@@ -1,7 +1,7 @@
 # prala
 ### Practice Language 
 
-The aim of this project to produce a software which can be used by a **language** learner to learn and practice new words, expressions, phrases.
+The aim of this project is to produce a software which can be used by a **language** learner to learn and practice new words, expressions, phrases.
 
 The software can generate a _template dictionary_ but the **filling up** is the user's task.  
 The idea is that the learner is reading a book or any other media and he collects the unknown/new words/expressions, checks it in a dictionary and write it down in the _dictionary_.  

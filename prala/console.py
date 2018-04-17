@@ -13,7 +13,7 @@ class ConsolePrala(object):
     COLOR_INPUT="\033[1;34m"
     COLOR_RESULT_STATUS_WRONG="\033[0;31m"
     COLOR_RESULT_STATUS_RIGHT="\033[0;32m"
-    COLOR_GOOD_ANSWER_WRONG="\033[0;31m"
+    COLOR_GOOD_ANSWER_WRONG="\033[1;31m"
     COLOR_GOOD_ANSWER_RIGHT="\033[0;32m"
     COLOR_STAT="\033[1;33m"
     COLOR_CORRECTION_RIGHT="\033[0;37m"
@@ -24,7 +24,7 @@ class ConsolePrala(object):
 
     POSITION_QUESTION="\033[10;10H"
     POSITION_INPUT="\033[11;10H"
-    POSITION_RESULT_STATUS="\033[12;10H"
+    POSITION_RESULT_STATUS="\033[13;10H"
     POSITION_CORRECTION="\033[18;10H"
     POSITION_GOOD_ANSWER="\033[16;10H"
     POSITION_STAT="\033[21;10H"
@@ -157,7 +157,17 @@ class ConsolePrala(object):
 
 def main():
 
-    if len(sys.argv) == 1:
+    if len(sys.argv) == 1:   DEFALULT_BASE_LANGUAGE="en"
+    DEFALULT_LEARNING_LANGUAGE="sv"
+
+    file=os.path.join(os.getcwd(),'config.ini')
+    property=Property(file)
+    base_language=to_name(property.get('languages', 'base_language', DEFALULT_BASE_LANGUAGE)).lower()
+    learning_language=to_name(property.get('languages', 'learning_language', DEFALULT_LEARNING_LANGUAGE)).lower()    
+
+   # the reason of using it "with" is to get back the default coursor color at the end
+    with ConsolePrala(file_name, base_language, learning_language, part_of_speech) as cp:
+
         print()
         print("Usage:")
         print("python " + sys.argv[0] + " dict_file_name [part_of_speech_filter]")

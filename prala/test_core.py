@@ -1,6 +1,6 @@
 import unittest
-from core import FilteredDictionary
-from core import Record
+from prala.core import FilteredDictionary
+from prala.core import Record
 
 import itertools
 from collections import Counter
@@ -15,15 +15,21 @@ class TestWordCycle(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         content={
-            "1":('v', 'aaa', ['Abc', 'Adef', 'Aghij', 'Aklmnopq', 'A']),
-            "2":('a', 'bbb', ['Bcd', 'Befg', 'Bhijk']),
-            "3":('n', 'ccc', ['Cde']),
-            "4":('b', 'ddd', ['Def'])
+            "1":('v', 'group1', ['Abc', 'Adef', 'Aghij', 'Aklmnopq', 'A'], 'aaa' ),
+            "2":('a', 'group1', ['Bcd', 'Befg', 'Bhijk'], 'bbb'),
+            "3":('n', 'group1', ['Cde'], 'ccc'),
+            "4":('b', 'group1', ['Def'], 'ddd')
         }
 
+        # write into the test file the words
         with open( TestWordCycle.DICT_FILE, "w" ) as f:
-            #print(*[FilteredDictionary.RECORD_SPLITTER.join([k]+[v[0]]+[v[1]]+[", ".join(v[2])]) for k, v in content.items()], sep='\n', file=f)
-            print(*[FilteredDictionary.RECORD_SPLITTER.join([v[0]]+[v[1]]+[", ".join(v[2])]) for k, v in content.items()], sep='\n', file=f)
+            print(*[FilteredDictionary.RECORD_SPLITTER.join(
+                [v[0]]+
+                [v[1]]+
+                [", ".join(v[2])]+
+                [v[3]]
+                ) for k, v in content.items()]
+                , sep='\n', file=f)
 
     #Runs before every testcase
     def setUp(self): 
@@ -119,7 +125,9 @@ class TestWordCycle(unittest.TestCase):
         """
         myFilteredDictionary=WordCyrcleAllHaveGoodAnswer()
         loop=40000
+
         result=Counter([myFilteredDictionary.get_next_random_record().base_word for i in range(loop)])
+
         self.assertAlmostEqual(result['aaa']/loop, 1/10, delta=0.01)
         self.assertAlmostEqual(result['bbb']/loop, 2/10, delta=0.01)
         self.assertAlmostEqual(result['ccc']/loop, 3/10, delta=0.01)
@@ -219,7 +227,7 @@ class TestWordCycle(unittest.TestCase):
         self.assertEqual(result[1][3],[])
         self.assertEqual(result[1][4],[])
 
-    def test_add_result_to_stat( self ):
+    def test_recent_stat_of_one_word( self ):
         """
         """
         self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='v') 
@@ -230,8 +238,9 @@ class TestWordCycle(unittest.TestCase):
         self.myFilteredDictionary.add_result_to_stat(record.word_id, True)
         self.assertEqual( record.get_recent_stat(), [1,0,1] )
        
-    def test_(self):
- 
+    def test_recent_stat_of_all_words(self):
+        """
+        """
         self.myFilteredDictionary=FilteredDictionary(TestWordCycle.BASE_NAME, 'hungarian', 'swedish', part_of_speach_filter='') 
         
         record=self.myFilteredDictionary.get_next_random_record()
@@ -291,11 +300,12 @@ class WordCyrcleMostHaveNoGoodAnswer(FilteredDictionary):
             "4":[0,0,0],
         }
         self.word_dict={
-            "1":('v', 'aaa', ['AAA']),
-            "2":('v', 'bbb', ['BBB']),
-            "3":('v', 'ccc', ['CCC']),
-            "4":('v', 'ddd', ['DDD'])
+            "1":('v', ['AAA'], 'aaa', ''),
+            "2":('v', ['BBB'], 'bbb', ''),
+            "3":('v', ['CCC'], 'ccc', ''),
+            "4":('v', ['DDD'], 'ddd', '')
         }
+
 
 class WordCyrcleAllHaveGoodAnswer(FilteredDictionary):
     
@@ -309,11 +319,12 @@ class WordCyrcleAllHaveGoodAnswer(FilteredDictionary):
             "4":[0,1,0],    # 4 points => 4/10 probability
         }
         self.word_dict={
-            "1":('v', 'aaa', ['AAA']),
-            "2":('v', 'bbb', ['BBB']),
-            "3":('v', 'ccc', ['CCC']),
-            "4":('v', 'ddd', ['DDD'])
+            "1":('v', ['AAA'], 'aaa', ''),
+            "2":('v', ['BBB'], 'bbb', ''),
+            "3":('v', ['CCC'], 'ccc', ''),
+            "4":('v', ['DDD'], 'ddd', '')
         }
+
 
 (7, [0, 0, 0]), 
 (2, [0, 0, 1]), 

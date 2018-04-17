@@ -12,14 +12,17 @@ class FilteredDictionary(object):
 
     DICT_POS=Enum(
         POS_POS=0,
-        POS_LEARNING=1,
-        POS_BASE=2,
+        POS_FILTER=1,
+        POS_LEARNING=2,
+        POS_BASE=3,
+        POS_NOTE=4
     )
 
     RECORD_POS= Enum(
         POS_POS=0,
         POS_LEARNING=1,
         POS_BASE=2,
+        POS_NOTE=3,
     )
 
     def __init__(self, file_name, base_language, learning_language, part_of_speach_filter=""):
@@ -52,14 +55,20 @@ class FilteredDictionary(object):
             with open( self.dict_file_name ) as f:
                 self.word_dict={}
                 for line in f:
-                    ln=hashlib.md5(line.encode()).hexdigest()
+                    ln=hashlib.md5(line.encode()).hexdigest()                    
+                    #pharse the line to a list
                     element_list=line.strip().split(self.__class__.RECORD_SPLITTER)
+                    #fill up the list if it shorter
+                    element_list= (element_list + [''] * type(self).DICT_POS.size())[:type(self).DICT_POS.size()]
+
                     if len(part_of_speach_filter) == 0 or element_list[type(self).DICT_POS.POS_POS].lower() == part_of_speach_filter.lower():
                         #self.word_dict[str(ln)]=(element_list[type(self).POS_DICT_POS], element_list[type(self).POS_DICT_BASE], list(map(str.strip, element_list[type(self).POS_DICT_LEARNING].strip().split(self.__class__.WORD_SPLITTER) ) ) )
+
                         self.word_dict[str(ln)] = [None] * type(self).RECORD_POS.size()
                         self.word_dict[str(ln)][type(self).RECORD_POS.POS_POS] = element_list[type(self).DICT_POS.POS_POS] 
                         self.word_dict[str(ln)][type(self).RECORD_POS.POS_BASE] = element_list[type(self).DICT_POS.POS_BASE]
                         self.word_dict[str(ln)][type(self).RECORD_POS.POS_LEARNING] = list(map(str.strip, element_list[type(self).DICT_POS.POS_LEARNING].strip().split(self.__class__.WORD_SPLITTER) ) )
+                        self.word_dict[str(ln)][type(self).RECORD_POS.POS_NOTE] = element_list[type(self).DICT_POS.POS_NOTE] 
         except FileNotFoundError as e:
             print( e )
             exit()
@@ -198,7 +207,7 @@ class Record(object):
             base_language       - string
             learning_language   - string
             word_id             - integer
-            word                - list:     [part_of_speach, [word, and, its, forms], base_word]
+            word                - list:     [part_of_speach, [word, and, its, forms], base_word, note]
         """
         self.base_language = base_language
         self.learning_language = learning_language
@@ -207,6 +216,7 @@ class Record(object):
         self.part_of_speach = word[FilteredDictionary.RECORD_POS.POS_POS]
         self.learning_words = word[FilteredDictionary.RECORD_POS.POS_LEARNING]
         self.base_word = word[FilteredDictionary.RECORD_POS.POS_BASE]
+        self.note = word[FilteredDictionary.RECORD_POS.POS_NOTE]
 
         #self.word = word
         self.recent_stat = recent_stat

@@ -19,6 +19,8 @@ class ConsolePrala(object):
     COLOR_CORRECTION_RIGHT="\033[0;37m"
     COLOR_CORRECTION_WRONG="\033[1;31m"
     COLOR_STAT="\033[1;33m"
+    COLOR_NUMBER_OF_WORDS="\033[1;32m"
+    COLOR_NOTE="\033[0;37m"
 
     POSITION_QUESTION="\033[10;10H"
     POSITION_INPUT="\033[11;10H"
@@ -40,7 +42,10 @@ class ConsolePrala(object):
         record=self.myFilteredDictionary.get_next_random_record()
 
         # shows the question word
-        self.out_question(record.base_word + " - (" + str(len(record.learning_words) ) + ")")
+        self.out_question(
+            record.base_word + " - ",
+            "(" + str(len(record.learning_words) ) + ")", 
+            " " + record.note)
         record.say_out_base()
 
         # replace every alphabetic character to _ to show under cursor
@@ -67,10 +72,17 @@ class ConsolePrala(object):
     def clear_console(self):
         sys.stdout.write("\033[2J")
 
-    def out_question(self, question):
+    def out_question(self, question, number_of_words, note):
         sys.stdout.write(type(self).POSITION_QUESTION)
         sys.stdout.write(type(self).COLOR_QUESTION)
-        print(question)
+        print(question, end="")
+
+        sys.stdout.write(type(self).COLOR_NUMBER_OF_WORDS)
+        print(number_of_words, end="")
+
+        sys.stdout.write(type(self).COLOR_NOTE)
+        print(note)
+
         sys.stdout.write(type(self).COLOR_DEFAULT)
 
     def get_input(self, template):

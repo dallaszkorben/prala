@@ -55,7 +55,9 @@ class FilteredDictionary(object):
             with open( self.dict_file_name ) as f:
                 self.word_dict={}
                 for line in f:
+                    #id for the line
                     ln=hashlib.md5(line.encode()).hexdigest()                    
+
                     #pharse the line to a list
                     element_list=line.strip().split(self.__class__.RECORD_SPLITTER)
                     #fill up the list if it shorter
@@ -64,11 +66,21 @@ class FilteredDictionary(object):
                     if len(part_of_speach_filter) == 0 or element_list[type(self).DICT_POS.POS_POS].lower() == part_of_speach_filter.lower():
                         #self.word_dict[str(ln)]=(element_list[type(self).POS_DICT_POS], element_list[type(self).POS_DICT_BASE], list(map(str.strip, element_list[type(self).POS_DICT_LEARNING].strip().split(self.__class__.WORD_SPLITTER) ) ) )
 
-                        self.word_dict[str(ln)] = [None] * type(self).RECORD_POS.size()
-                        self.word_dict[str(ln)][type(self).RECORD_POS.POS_POS] = element_list[type(self).DICT_POS.POS_POS] 
-                        self.word_dict[str(ln)][type(self).RECORD_POS.POS_BASE] = element_list[type(self).DICT_POS.POS_BASE]
-                        self.word_dict[str(ln)][type(self).RECORD_POS.POS_LEARNING] = list(map(str.strip, element_list[type(self).DICT_POS.POS_LEARNING].strip().split(self.__class__.WORD_SPLITTER) ) )
-                        self.word_dict[str(ln)][type(self).RECORD_POS.POS_NOTE] = element_list[type(self).DICT_POS.POS_NOTE] 
+                        learning_word_list=list(map(str.strip, element_list[type(self).DICT_POS.POS_LEARNING].strip().split(self.__class__.WORD_SPLITTER) ) )
+
+                        # if there is BASE word and LEARNING words
+                        if element_list[type(self).DICT_POS.POS_BASE] and all(learning_word_list):
+                            self.word_dict[str(ln)] = [None] * type(self).RECORD_POS.size()
+                            self.word_dict[str(ln)][type(self).RECORD_POS.POS_POS] = element_list[type(self).DICT_POS.POS_POS] 
+                            self.word_dict[str(ln)][type(self).RECORD_POS.POS_BASE] = element_list[type(self).DICT_POS.POS_BASE]
+                            self.word_dict[str(ln)][type(self).RECORD_POS.POS_LEARNING] = learning_word_list
+                            self.word_dict[str(ln)][type(self).RECORD_POS.POS_NOTE] = element_list[type(self).DICT_POS.POS_NOTE] 
+
+                # if the word list is empty the there is nothing to do
+                if len(self.word_dict) == 0:
+                    print( "The dict is empty ..." )
+                    exit()
+
         except FileNotFoundError as e:
             print( e )
             exit()
@@ -101,6 +113,7 @@ class FilteredDictionary(object):
     
                 #updates
                 self.recent_stat_list[word_id]=db[word_id][-1]   
+
 
     def get_next_random_record(self):
         """
@@ -218,7 +231,7 @@ class Record(object):
         self.base_word = word[FilteredDictionary.RECORD_POS.POS_BASE]
         self.note = word[FilteredDictionary.RECORD_POS.POS_NOTE]
 
-        #self.word = word
+         #self.word = word
         self.recent_stat = recent_stat
 
     def get_recent_stat(self):

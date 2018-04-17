@@ -52,6 +52,7 @@ class ConsolePrala(object):
         template=re.sub("[^, \!]", "_", ", ".join(record.learning_words))
         line=[ i.strip() for i in self.get_input(template).split(",")]
         result=record.check_answer(line)
+
         # write back the stat
         self.myFilteredDictionary.add_result_to_stat(record.word_id,result[0])
         if result[0]:

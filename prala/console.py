@@ -6,6 +6,8 @@ from iso639 import to_name
 from prala.core import FilteredDictionary
 from prala.core import Record
 from prala.accessories import Property
+from prala.exceptions import EmptyDictionaryError
+from prala.exceptions import NoDictionaryError
 
 class ConsolePrala(object):
     COLOR_DEFAULT="\033[00m"
@@ -144,7 +146,7 @@ class ConsolePrala(object):
         sys.stdout.write(type(self).COLOR_DEFAULT)
 
 
-    # this need to us the class with "with"
+    # this need to use the class with "with"
     def __enter__(self):
        return self
 
@@ -157,17 +159,7 @@ class ConsolePrala(object):
 
 def main():
 
-    if len(sys.argv) == 1:   DEFALULT_BASE_LANGUAGE="en"
-    DEFALULT_LEARNING_LANGUAGE="sv"
-
-    file=os.path.join(os.getcwd(),'config.ini')
-    property=Property(file)
-    base_language=to_name(property.get('languages', 'base_language', DEFALULT_BASE_LANGUAGE)).lower()
-    learning_language=to_name(property.get('languages', 'learning_language', DEFALULT_LEARNING_LANGUAGE)).lower()    
-
-   # the reason of using it "with" is to get back the default coursor color at the end
-    with ConsolePrala(file_name, base_language, learning_language, part_of_speech) as cp:
-
+    if len(sys.argv) == 1:   
         print()
         print("Usage:")
         print("python " + sys.argv[0] + " dict_file_name [part_of_speech_filter]")
@@ -191,6 +183,9 @@ def main():
     else:
         part_of_speech = ""
 
+    #
+    # config.ini
+    #
     DEFALULT_BASE_LANGUAGE="en"
     DEFALULT_LEARNING_LANGUAGE="sv"
 
@@ -199,10 +194,24 @@ def main():
     base_language=to_name(property.get('languages', 'base_language', DEFALULT_BASE_LANGUAGE)).lower()
     learning_language=to_name(property.get('languages', 'learning_language', DEFALULT_LEARNING_LANGUAGE)).lower()    
 
-   # the reason of using it "with" is to get back the default coursor color at the end
-    with ConsolePrala(file_name, base_language, learning_language, part_of_speech) as cp:
-      while True:
-         cp.round()
+    # the reason of using it "with" is to get back the default coursor color at the end
+    try:
+        with ConsolePrala(file_name, base_language, learning_language, part_of_speech) as cp:
+            while True:
+                cp.round()
+    
+    except EmptyDictionaryError as e:
+        print("------------------------")
+        print("Error: ")
+        print( e, "\n   File name: " + e.dict_file_name, "\n   Part of speech: " + e.part_of_speach, "\n   Extra filter: " + e.extra_filter )
+        print("------------------------")
+
+    except NoDictionaryError as f:
+        print("------------------------")
+        print("Error: ")
+        print( "File name: " + f.dict_file_name)
+        print("------------------------")
 
 #if __name__ == "__main__":
 #    main()
+

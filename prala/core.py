@@ -4,6 +4,8 @@ import random
 import numpy as np
 import hashlib
 from prala.accessories import Enum
+from prala.exceptions import EmptyDictionaryError
+from prala.exceptions import NoDictionaryError
 
 class FilteredDictionary(object):
     DICT_EXT="dict"
@@ -72,18 +74,18 @@ class FilteredDictionary(object):
                         if element_list[type(self).DICT_POS.POS_BASE] and all(learning_word_list):
                             self.word_dict[str(ln)] = [None] * type(self).RECORD_POS.size()
                             self.word_dict[str(ln)][type(self).RECORD_POS.POS_POS] = element_list[type(self).DICT_POS.POS_POS] 
-                            self.word_dict[str(ln)][type(self).RECORD_POS.POS_BASE] = element_list[type(self).DICT_POS.POS_BASE]
                             self.word_dict[str(ln)][type(self).RECORD_POS.POS_LEARNING] = learning_word_list
+                            self.word_dict[str(ln)][type(self).RECORD_POS.POS_BASE] = element_list[type(self).DICT_POS.POS_BASE]                            
                             self.word_dict[str(ln)][type(self).RECORD_POS.POS_NOTE] = element_list[type(self).DICT_POS.POS_NOTE] 
 
                 # if the word list is empty the there is nothing to do
                 if len(self.word_dict) == 0:
-                    print( "The dict is empty ..." )
-                    exit()
+                    raise EmptyDictionaryError( self.dict_file_name, part_of_speach_filter, extra_filter)
+                    #print( "The dict is empty ..." )
+                    #exit()
 
         except FileNotFoundError as e:
-            print( e )
-            exit()
+            raise NoDictionaryError(e)
 
         #now in the word_dict found all filtered words by line
 

@@ -55,6 +55,27 @@ class Property(object):
             out += ["[" + s + "]"] + ["  " + k + "=" + v for k, v in vs.items()]
         return "\n".join(out)
 
+
+def xzip(a, b, string_filler=""):
+    """
+    Returns a list of tuples, where the i-th tuple contains the i-th element 
+    from each of the argument sequences or iterables. 
+    If the argument sequences are of unequal lengths, then the shorter list
+    will be complemented
+    """
+    #zipped_list= list(zip( 
+    #a + [" "*len(i) for i in b][len(a):], 
+    #b + [" "*len(i) for i in a][len(b):] ) )
+    zipped_list= list(zip( 
+    a + ["" for i in b][len(a):], 
+    b + ["" for i in a][len(b):] ) )
+
+    if string_filler:
+        zipped_list = [ (
+            str(i[0]) + (string_filler*len(str(i[1])))[len(str(i[0])):] , 
+            str(i[1]) + (string_filler*len(str(i[0])))[len(str(i[1])):] ) 
+                for i in zipped_list]
+    return zipped_list
 #file=os.path.join(os.getcwd(),'config.inii')
 #p=Property(file)
 #p.update("language4", "newe#from iso3166 import countries

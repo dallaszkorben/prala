@@ -6,6 +6,13 @@ from prala import console
 import itertools
 from collections import Counter
 import os
+import sys
+
+from unittest.mock import patch
+from unittest.mock import MagicMock
+from unittest.mock import Mock
+
+
 
 class TestConsole(unittest.TestCase):
     BASE_NAME="testfile"
@@ -35,10 +42,28 @@ class TestConsole(unittest.TestCase):
     def setUp(self): 
         pass
 
+    
     def test_start( self ):
-        """ 
+        os.urandom=MagicMock( return_value=3)   
+
+        print("result: ", os.urandom())
+        os.urandom()
+        os.urandom()
+        os.urandom.assert_called_once_with()
+
+
         """
-        console.main()
+        testargs = ["console", type(self).BASE_NAME ]
+        with patch.object(sys, 'argv', testargs):
+
+            #from prala.console import ConsolePrala
+            #from unittest.mock import MagicMock
+            #from unittest.mock import Mock
+
+            #ConsolePrala.get_input=MagicMock(return_value="visszateres")
+            #ConsolePrala.get_input=Mock(side_effect=BaseException( 'FOO' ) )
+            console.main()
+        """
 
 
     #Runs after every testcase - anyway	
@@ -58,5 +83,6 @@ class TestConsole(unittest.TestCase):
             pass
 
 
-if __name__ == "__main__":
-	unittest.main()
+#if __name__ == "__main__":
+#	unittest.main()
+

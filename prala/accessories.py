@@ -35,6 +35,20 @@ class Property(object):
 
         return result
 
+    def get_boolean(self, section, key, default_value):
+        if not os.path.exists(self.file):
+            self.parser[section]={key: default_value}
+            self.write_file()
+        self.parser.read(self.file)
+
+        try:
+            result=self.parser.getboolean(section,key)
+        except (configparser.NoSectionError, configparser.NoOptionError):
+            self.update(section, key, default_value)
+            result=self.parser.get(section,key)
+
+        return result
+
     def update(self, section, key, value):
         if not os.path.exists(self.file):
             self.parser[section]={key: value}        

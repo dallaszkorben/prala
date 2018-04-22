@@ -37,9 +37,12 @@ class ConsolePrala(object):
     STATUS_WRONG="WRONG"
     STATUS_RIGHT="RIGHT"
 
-    def __init__( self, file_name, base_language, learning_language, part_of_speach_filter="" ):
+    def __init__( self, file_name, base_language, learning_language, part_of_speech_filter="", say_out=True, show_pattern=True, show_note=True ):
 
-        self.myFilteredDictionary=FilteredDictionary(file_name, base_language, learning_language, part_of_speach_filter) 
+        self.myFilteredDictionary=FilteredDictionary(file_name, base_language, learning_language, part_of_speech_filter) 
+        self.say_out=say_out
+        self.show_pattern=show_pattern
+        self.show_note=show_note
 
     def round(self, wrong_record=None):
 
@@ -54,18 +57,24 @@ class ConsolePrala(object):
         self.out_question(
             record.base_word + " - ",
             "(" + str(len(record.learning_words) ) + ")", 
-            " " + record.note)
+            " " + record.note if self.show_note else "" )
         
+        # show stat
         overall=self.myFilteredDictionary.get_recent_stat_list()
         overall_str=str(overall[1]) + "/" + str(overall[0]) + ("/" + str(overall[2]) if overall[2] > 0 else "") + " (" + (str(int(100 * overall[1] / overall[0])) if overall[0] > 0 else "") + "%)"
         actual=record.get_recent_stat()
         points=self.myFilteredDictionary.get_points(actual)
         self.out_stat(overall_str, actual, points)
         
-        record.say_out_base()
+        # say out the question
+        if self.say_out:
+            record.say_out_base()
 
         # replace every alphabetic character to _ to show under cursor
-        template=re.sub(r"[^, \!]", "_", ", ".join(record.learning_words))
+        if self.show_pattern:
+            template=re.sub(r"[^, \!]", "_", ", ".join(record.learning_words))
+        else:
+            template=""
         line=[ i.strip() for i in self.get_input(template).split(",")]
         result=record.check_answer(line)
 
@@ -85,7 +94,10 @@ class ConsolePrala(object):
         actual=record.get_recent_stat()  
         points=self.myFilteredDictionary.get_points(actual)      
         self.out_stat(overall_str, actual, points)
-        record.say_out_learning()
+        
+        # say out the right answer
+        if self.say_out:
+            record.say_out_learning()
         
         #waitin for a click to continue
         input()
@@ -188,16 +200,6 @@ def main():
         print()
         print("Usage:")
         print("python " + sys.argv[0] + " dict_file_name [part_of_speech_filter]")
-        print("part of speech:")
-        print("   n     -noun")
-        print("   v     -verb")
-        print("   a     -adjective")
-        print("   b     -adverb")
-        print("   r     -pronoun")
-        print("   e     -preposition")
-        print("   c     -conjunction")
-        print("   i     -interjection")
-        print("   t     -article")
         
         exit()
 
@@ -211,17 +213,23 @@ def main():
     #
     # config.ini
     #
-    DEFALULT_BASE_LANGUAGE="en"
-    DEFALULT_LEARNING_LANGUAGE="sv"
+    DEFAULT_BASE_LANGUAGE="en"
+    DEFAULT_LEARNING_LANGUAGE="sv"
+    DEFAULT_SAY_OUT=True
+    DEFAULT_SHOW_PATTERN=True
+    DEFAULT_SHOW_NOTE=True
 
     file=os.path.join(os.getcwd(),'config.ini')
     property=Property(file)
-    base_language=to_name(property.get('languages', 'base_language', DEFALULT_BASE_LANGUAGE)).lower()
-    learning_language=to_name(property.get('languages', 'learning_language', DEFALULT_LEARNING_LANGUAGE)).lower()    
+    base_language=to_name(property.get('languages', 'base_language', DEFAULT_BASE_LANGUAGE)).lower()
+    learning_language=to_name(property.get('languages', 'learning_language', DEFAULT_LEARNING_LANGUAGE)).lower()
+    say_out=property.get_boolean('general', 'say_out', DEFAULT_SAY_OUT)    
+    show_pattern=property.get_boolean('general', 'show_pattern', DEFAULT_SHOW_PATTERN)    
+    show_note=property.get_boolean('general', 'show_note', DEFAULT_SHOW_NOTE)
 
     # the reason of using it "with" is to get back the default coursor color at the end
     try:
-        with ConsolePrala(file_name, base_language, learning_language, part_of_speech) as cp:
+        with ConsolePrala(file_name, base_language, learning_language, part_of_speech_filter=part_of_speech, say_out=say_out, show_pattern=show_pattern, show_note=show_note) as cp:
             wrong_record=None
             while True:
                 wrong_record=cp.round(wrong_record)

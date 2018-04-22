@@ -45,7 +45,6 @@ class FilteredDictionary(object):
 
         self.base_language=base_language
         self.learning_language=learning_language
-
         self.dict_file_name=file_name+"." + self.__class__.DICT_EXT
         self.stat_file_name=file_name
 

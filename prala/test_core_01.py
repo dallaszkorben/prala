@@ -40,25 +40,74 @@ class TestWordCycleFunctions(unittest.TestCase):
         pass
         #self.myFilteredDictionary=FilteredDictionary(TestWordCycleFunctions.BASE_NAME, 'hungarian', 'swedish') 
 
-    def test_get_points( self ):
+    def test_get_points_same_size_stat( self ):
         """
         Tests if a list of statistics have back the right points.
         The list and the expected points are the following:
-            [0, 0, 0]   -> 7
-            [0, 0, 1]   -> 2
-            [0, 1, 0]   -> 4
-            [0, 1, 1]   -> 1
-            [1, 0, 0]   -> 5
-            [1, 0, 1]   -> 2
-            [1, 1, 0]   -> 3
-            [1, 1, 1]   -> 1
+        (0, 0, 0)->9
+        (0, 0, 1)->6
+        (0, 1, 0)->5
+        (0, 1, 1)->2
+        (1, 0, 0)->6
+        (1, 0, 1)->4
+        (1, 1, 0)->3
+        (1, 1, 1)->1  
         """
-        self.myFilteredDictionary=FilteredDictionary(TestWordCycleFunctions.BASE_NAME, 'hungarian', 'swedish') 
+        # Mock the __ini__
+        with patch.object(FilteredDictionary, "__init__", lambda x: None):
+            myFilteredDictionary=FilteredDictionary()
+            myFilteredDictionary.base_language="hungarian"
+            myFilteredDictionary.learning_language="swedish"
+            myFilteredDictionary.recent_stat_list={i:list(i) for i in list(itertools.product([0,1], repeat=3))}
+            myFilteredDictionary.word_dict={
+                "1":('v', ['AAA'], 'aaa', ''),
+                "2":('v', ['BBB'], 'bbb', ''),
+                "3":('v', ['CCC'], 'ccc', ''),
+                "4":('v', ['DDD'], 'ddd', ''),
+                "5":('v', ['EEE'], 'aaa', ''),
+                "6":('v', ['FFF'], 'bbb', ''),
+                "7":('v', ['GGG'], 'ccc', ''),
+                "8":('v', ['HHH'], 'ddd', '')
+            }
+            expected_list=[9,6,5,2,6,4,3,1]
+            # run with all statuses -> result zipped with the expected valus -> pairs substracted from each other -> sum -> it must be 0
+            self.assertEqual( sum( [ j[0]-j[1] for j in zip( [myFilteredDictionary.get_points(i) for i in myFilteredDictionary.recent_stat_list], expected_list) ] ), 0 )
+            #print()
+            #print(*[str(k) + "->" + str(myFilteredDictionary.get_points(v)) for k,v in myFilteredDictionary.recent_stat_list.items()], sep="\n")
 
-        stat_list=[list(i) for i in list(itertools.product([0,1], repeat=3))]
-        expected_list=[7,2,4,1,5,2,3,1]
-        # run with all statuses -> result zipped with the expected valus -> pairs substracted from each other -> sum -> it must be 0
-        self.assertEqual( sum( [ j[0]-j[1] for j in zip( [self.myFilteredDictionary.get_points(i) for i in stat_list], expected_list) ] ), 0 )
+
+    def test_get_points_different_size_stat( self ):
+        """
+        Tests if a list of statistics have back the right points.
+        The list and the expected points are the following:
+        (0,)->5
+        (1,)->3
+        (0, 0)->7
+        (0, 1)->4
+        (1, 0)->4
+        (1, 1)->2
+        (0, 0, 0)->9
+        (0, 0, 1)->6
+        (0, 1, 0)->5
+        (0, 1, 1)->2
+        (1, 0, 0)->6
+        (1, 0, 1)->4
+        (1, 1, 0)->3
+        (1, 1, 1)->1
+        """
+        # Mock the __ini__
+        with patch.object(FilteredDictionary, "__init__", lambda x: None):
+            myFilteredDictionary=FilteredDictionary()
+            myFilteredDictionary.base_language="hungarian"
+            myFilteredDictionary.learning_language="swedish"
+            myFilteredDictionary.recent_stat_list={i:list(i) for i in list(itertools.product([0,1], repeat=1)) + list(itertools.product([0,1], repeat=2)) + list(itertools.product([0,1], repeat=3))}
+            myFilteredDictionary.word_dict={"1":('v', ['AAA'], 'aaa', '') }
+            expected_list=[5,3,7,4,4,2,9,6,5,2,6,4,3,1]
+            # run with all statuses -> result zipped with the expected valus -> pairs substracted from each other -> sum -> it must be 0
+            self.assertEqual( sum( [ j[0]-j[1] for j in zip( [myFilteredDictionary.get_points(i) for i in myFilteredDictionary.recent_stat_list], expected_list) ] ), 0 )
+            #print()
+            #print(*[str(k) + "->" + str(myFilteredDictionary.get_points(v)) for k,v in myFilteredDictionary.recent_stat_list.items()], sep="\n")
+
 
     def test_get_random_id_equal_chances_all( self ):
         """
@@ -96,16 +145,22 @@ class TestWordCycleFunctions(unittest.TestCase):
         Tests if the chance to get the words
         are proportional to the point (weight) what they have.
         """
+       # Mock the __ini__
+        with patch.object(FilteredDictionary, "__init__", lambda x: None):
+            myFilteredDictionary=FilteredDictionary()
+            myFilteredDictionary.base_language="hungarian"
+            myFilteredDictionary.learning_language="swedish"
+            myFilteredDictionary.recent_stat_list={
+                "a": [1,1,1],   # 1 point  (weight)
+                "b": [0,1,1],   # 2 points (weight)
+            }
+            myFilteredDictionary.word_dict={
+                "1":('v', ['AAA'], 'aaa', ''),
+                "2":('v', ['BBB'], 'aaa', '')             
+            }
 
-        self.myFilteredDictionary=FilteredDictionary(TestWordCycleFunctions.BASE_NAME, 'hungarian', 'swedish') 
-        
-        stat_list={
-            "a": [1,1,1],   # 1 point  (weight)
-            "b": [0,0,1],   # 2 points (weight)
-        }
-
-        result=Counter( [self.myFilteredDictionary.get_random_id(stat_list) for i in range(40000)] )
-        self.assertAlmostEqual( result["b"] / result["a"], 2.0, delta=0.08)
+            result=Counter( [myFilteredDictionary.get_random_id(myFilteredDictionary.recent_stat_list) for i in range(40000)] )
+            self.assertAlmostEqual( result["b"] / result["a"], 2.0, delta=0.08)
 
     def test_get_next_random_record_only_one_good_answer( self ):
         """
@@ -152,9 +207,9 @@ class TestWordCycleFunctions(unittest.TestCase):
             myFilteredDictionary.learning_language="swedish"
             myFilteredDictionary.recent_stat_list={
                 "1":[1,1,1],    # 1 point => 1/10 probability
-                "2":[1,0,1],    # 2 points => 2/10 probability
+                "2":[0,1,1],    # 2 points => 2/10 probability
                 "3":[1,1,0],    # 3 points => 3/10 probability
-                "4":[0,1,0],    # 4 points => 4/10 probability
+                "4":[1,0,1],    # 4 points => 4/10 probability
             }
             myFilteredDictionary.word_dict={
                 "1":('v', ['AAA'], 'aaa', ''),

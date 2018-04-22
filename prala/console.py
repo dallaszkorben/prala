@@ -38,16 +38,23 @@ class ConsolePrala(object):
 
         self.myFilteredDictionary=FilteredDictionary(file_name, base_language, learning_language, part_of_speach_filter) 
 
-    def round(self):
+    def round(self, wrong_record=None):
 
         self.clear_console()
-        record=self.myFilteredDictionary.get_next_random_record()
+
+        record=self.myFilteredDictionary.get_next_random_record(wrong_record)
 
         # shows the question word
         self.out_question(
             record.base_word + " - ",
             "(" + str(len(record.learning_words) ) + ")", 
             " " + record.note)
+        
+        overall=self.myFilteredDictionary.get_recent_stat_list()
+        overall_str=str(overall[1]) + "/" + str(overall[0]) + ("/" + str(overall[2]) if overall[2] > 0 else "") + " (" + (str(int(100 * overall[1] / overall[0])) if overall[0] > 0 else "") + "%)"
+        actual=record.get_recent_stat()
+        self.out_stat(overall_str, actual, self.myFilteredDictionary.get_points(actual))
+        
         record.say_out_base()
 
         # replace every alphabetic character to _ to show under cursor
@@ -57,8 +64,10 @@ class ConsolePrala(object):
 
         # write back the stat
         self.myFilteredDictionary.add_result_to_stat(record.word_id,result[0])
+        # good answer
         if result[0]:
             self.out_good_answer_right(record.learning_words)
+        # wrong answer
         else:
             self.out_correction(result[1], line, record.learning_words)
             self.out_good_answer_wrong(record.learning_words)
@@ -67,10 +76,13 @@ class ConsolePrala(object):
         overall=self.myFilteredDictionary.get_recent_stat_list()
         overall_str=str(overall[1]) + "/" + str(overall[0]) + ("/" + str(overall[2]) if overall[2] > 0 else "") + " (" + str(int(100 * overall[1] / overall[0])) + "%)"
         actual=record.get_recent_stat()        
-        self.out_stat(overall_str, actual)
+        self.out_stat(overall_str, actual, self.myFilteredDictionary.get_points(actual))
         record.say_out_learning()
+        
         #waitin for a click to continue
         input()
+
+        return None if result[0] else record
 
     def clear_console(self):
         sys.stdout.write("\033[2J")
@@ -122,11 +134,11 @@ class ConsolePrala(object):
         sys.stdout.write(type(self).COLOR_DEFAULT)
         self.out_result_status(False)
    
-    def out_stat(self, overall, specific):
+    def out_stat(self, overall, specific, points):
         sys.stdout.write(type(self).POSITION_STAT)
         sys.stdout.write(type(self).COLOR_STAT)
 
-        print( overall, specific)
+        print( overall, specific, points)
 
         sys.stdout.write(type(self).COLOR_DEFAULT)
         
@@ -197,8 +209,9 @@ def main():
     # the reason of using it "with" is to get back the default coursor color at the end
     try:
         with ConsolePrala(file_name, base_language, learning_language, part_of_speech) as cp:
+            wrong_record=None
             while True:
-                cp.round()
+                wrong_record=cp.round(wrong_record)
     
     except EmptyDictionaryError as e:
         print("------------------------")

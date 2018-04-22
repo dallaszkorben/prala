@@ -117,13 +117,13 @@ class FilteredDictionary(object):
                 self.recent_stat_list[word_id]=db[word_id][-1]   
 
 
-    def get_next_random_record(self):
+    def get_next_random_record(self, wrong_record=None):
         """
         Gives back a randomly chosen line object from the filtered wordlist
 
         output: WordLine object
         """
-        word_id=self.get_random_id(self.recent_stat_list)
+        word_id=self.get_random_id(self.recent_stat_list, wrong_record)
 
         return Record( self.base_language, self.learning_language, word_id, self.word_dict[ word_id ], self.recent_stat_list[ word_id ])
         #return word_id, self.word_dict[ word_id ]
@@ -150,7 +150,7 @@ class FilteredDictionary(object):
             #updates recent_stat_list variable
             db[word_id][-1]=self.recent_stat_list[word_id]
 
-    def get_random_id(self, stat_list):
+    def get_random_id(self, stat_list, wrong_record=None):
         """
         Returns the identifier of a random word in the list.
         The word with higher points get higher chance to be selected.
@@ -159,6 +159,7 @@ class FilteredDictionary(object):
         input: 
                 stat_list - [dictionary]    key:    word id
                                             value:  []
+                wrong_record - [record]
         output:
                 a random word id from the list
         """
@@ -171,6 +172,9 @@ class FilteredDictionary(object):
             #all element with same chance - must be changed
             return random.choice(first_round_list)
     
+        elif not wrong_record == None:
+            return wrong_record.word_id
+
         #if empty - chances must be taken by statistics
         else:
             return random.choice([ k for k, v in stat_list.items() for i in range(self.get_points(v))])
@@ -182,6 +186,7 @@ class FilteredDictionary(object):
         for a specific word in the recent session.
         More points mean worse answers.
         The following generate points:
+            -less questioned higher points
             -number of the tralling 0s
             -number of the wrong answers
             -number of the wrong answers after a good user_answer
@@ -192,13 +197,20 @@ class FilteredDictionary(object):
                             -   1: good user_answer
         """
         points=1
+
+        #shorter list has more points (longest list size-number of 1s in this list)
+        points += max([len(v) for k, v in self.recent_stat_list.items()])-sum(recent_stat)
+        
         # counts not knowing last n times(ends with 0)
-        points += len(recent_stat)-len("".join(map(str, recent_stat)).rstrip("0"))    
-        #   #counts all not knowings (0s)
-        #   points += len(recent_stat)-sum(recent_stat)
+ #       points += len(recent_stat)-len("".join(map(str, recent_stat)).rstrip("0"))    
+        
+        # counts not knowing last-1 n times (the last is ignored)
+        points += len(recent_stat[0:-1])-len("".join(map(str, recent_stat[0:-1])).rstrip("0"))    
+        
         # counts difference between 1 and 0
         points += max(sum([1 for i in recent_stat if i == 0])*2 - len(recent_stat), 0)
-        # counts all forgetting (1 -> 0)
+
+        # counts all forgettings (1 -> 0)
         points += np.sum(np.diff(recent_stat) == -1)          
 
         return points

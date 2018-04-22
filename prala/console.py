@@ -11,24 +11,27 @@ from prala.exceptions import NoDictionaryError
 
 class ConsolePrala(object):
     COLOR_DEFAULT="\033[00m"
-    COLOR_QUESTION="\033[1;37m"
-    COLOR_INPUT="\033[1;34m"
-    COLOR_RESULT_STATUS_WRONG="\033[0;31m"
-    COLOR_RESULT_STATUS_RIGHT="\033[0;32m"
-    COLOR_GOOD_ANSWER_WRONG="\033[1;31m"
-    COLOR_GOOD_ANSWER_RIGHT="\033[0;32m"
-    COLOR_STAT="\033[1;33m"
-    COLOR_CORRECTION_RIGHT="\033[0;37m"
-    COLOR_CORRECTION_WRONG="\033[1;31m"
-    COLOR_STAT="\033[1;33m"
-    COLOR_NUMBER_OF_WORDS="\033[1;32m"
-    COLOR_NOTE="\033[0;37m"
+    COLOR_POS="\033[1;33m"                  #yellow                
+    COLOR_QUESTION="\033[1;37m"             #white
+    COLOR_INPUT="\033[1;34m"                #ligth blue
+    #COLOR_RESULT_STATUS_WRONG="\033[0;31m"  #red
+    COLOR_RESULT_STATUS_WRONG="\033[41m\033[1;37m"    #red background-white foreground
+    #COLOR_RESULT_STATUS_RIGHT="\033[0;32m"  #green
+    COLOR_RESULT_STATUS_RIGHT="\033[42m\033[1;37m"  #green background-white foreground
+    COLOR_GOOD_ANSWER_WRONG="\033[1;31m"    #light red
+    COLOR_GOOD_ANSWER_RIGHT="\033[0;32m"    #green
+    COLOR_STAT="\033[1;33m"                 #yellow
+    COLOR_CORRECTION_RIGHT="\033[0;32m"     #green
+    COLOR_CORRECTION_WRONG="\033[1;31m"     #light red
+    COLOR_NUMBER_OF_WORDS="\033[1;32m"      #light green
+    COLOR_NOTE="\033[0;37m"                 #gray
 
+    POSITION_POS="\033[9;10H"
     POSITION_QUESTION="\033[10;10H"
-    POSITION_INPUT="\033[11;10H"
-    POSITION_RESULT_STATUS="\033[13;10H"
-    POSITION_CORRECTION="\033[18;10H"
-    POSITION_GOOD_ANSWER="\033[16;10H"
+    POSITION_INPUT="\033[14;10H"
+    POSITION_RESULT_STATUS="\033[12;10H"
+    POSITION_CORRECTION="\033[14;10H"
+    POSITION_GOOD_ANSWER="\033[15;10H"
     POSITION_STAT="\033[21;10H"
 
     STATUS_WRONG="WRONG"
@@ -44,6 +47,9 @@ class ConsolePrala(object):
 
         record=self.myFilteredDictionary.get_next_random_record(wrong_record)
 
+        # show the part of speech
+        self.out_pos(record.part_of_speach)
+
         # shows the question word
         self.out_question(
             record.base_word + " - ",
@@ -53,12 +59,13 @@ class ConsolePrala(object):
         overall=self.myFilteredDictionary.get_recent_stat_list()
         overall_str=str(overall[1]) + "/" + str(overall[0]) + ("/" + str(overall[2]) if overall[2] > 0 else "") + " (" + (str(int(100 * overall[1] / overall[0])) if overall[0] > 0 else "") + "%)"
         actual=record.get_recent_stat()
-        self.out_stat(overall_str, actual, self.myFilteredDictionary.get_points(actual))
+        points=self.myFilteredDictionary.get_points(actual)
+        self.out_stat(overall_str, actual, points)
         
         record.say_out_base()
 
         # replace every alphabetic character to _ to show under cursor
-        template=re.sub("[^, \!]", "_", ", ".join(record.learning_words))
+        template=re.sub(r"[^, \!]", "_", ", ".join(record.learning_words))
         line=[ i.strip() for i in self.get_input(template).split(",")]
         result=record.check_answer(line)
 
@@ -75,8 +82,9 @@ class ConsolePrala(object):
         #shows statistics
         overall=self.myFilteredDictionary.get_recent_stat_list()
         overall_str=str(overall[1]) + "/" + str(overall[0]) + ("/" + str(overall[2]) if overall[2] > 0 else "") + " (" + str(int(100 * overall[1] / overall[0])) + "%)"
-        actual=record.get_recent_stat()        
-        self.out_stat(overall_str, actual, self.myFilteredDictionary.get_points(actual))
+        actual=record.get_recent_stat()  
+        points=self.myFilteredDictionary.get_points(actual)      
+        self.out_stat(overall_str, actual, points)
         record.say_out_learning()
         
         #waitin for a click to continue
@@ -119,11 +127,16 @@ class ConsolePrala(object):
 
         sys.stdout.write(type(self).COLOR_DEFAULT)
 
+    def out_pos(self, pos):
+        sys.stdout.write(type(self).POSITION_POS)
+        sys.stdout.write(type(self).COLOR_POS)
+        print(pos, sep=", ")
+
     def out_good_answer_right(self, answer):
-        sys.stdout.write(type(self).POSITION_GOOD_ANSWER)
-        sys.stdout.write(type(self).COLOR_GOOD_ANSWER_RIGHT)
-        print( *answer, sep=", ")
-        sys.stdout.write(type(self).COLOR_DEFAULT)
+        #sys.stdout.write(type(self).POSITION_GOOD_ANSWER)
+        #sys.stdout.write(type(self).COLOR_GOOD_ANSWER_RIGHT)
+        #print( *answer, sep=", ")
+        #sys.stdout.write(type(self).COLOR_DEFAULT)
         self.out_result_status(True)
 
     def out_good_answer_wrong(self, answer):
@@ -138,7 +151,7 @@ class ConsolePrala(object):
         sys.stdout.write(type(self).POSITION_STAT)
         sys.stdout.write(type(self).COLOR_STAT)
 
-        print( overall, specific, points)
+        print( overall, specific, "("+str(points)+")")
 
         sys.stdout.write(type(self).COLOR_DEFAULT)
         

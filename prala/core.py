@@ -202,11 +202,17 @@ class FilteredDictionary(object):
         points += max([len(v) for k, v in self.recent_stat_list.items()])-sum(recent_stat)
         
         # counts not knowing last n times(ends with 0)
- #       points += len(recent_stat)-len("".join(map(str, recent_stat)).rstrip("0"))    
+        #points += len(recent_stat)-len("".join(map(str, recent_stat)).rstrip("0"))    
         
         # counts not knowing last-1 n times (the last is ignored)
-        points += len(recent_stat[0:-1])-len("".join(map(str, recent_stat[0:-1])).rstrip("0"))    
-        
+        #points += len(recent_stat[0:-1])-len("".join(map(str, recent_stat[0:-1])).rstrip("0"))    
+
+        # counts not knowing last-1 n times (the last is ignored) or last n times
+        points += max(
+            len(recent_stat)-len("".join(map(str, recent_stat)).rstrip("0")),
+            len(recent_stat[0:-1])-len("".join(map(str, recent_stat[0:-1])).rstrip("0"))
+        )
+
         # counts difference between 1 and 0
         points += max(sum([1 for i in recent_stat if i == 0])*2 - len(recent_stat), 0)
 

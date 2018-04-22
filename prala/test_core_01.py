@@ -44,14 +44,14 @@ class TestWordCycleFunctions(unittest.TestCase):
         """
         Tests if a list of statistics have back the right points.
         The list and the expected points are the following:
-        (0, 0, 0)->9
-        (0, 0, 1)->6
-        (0, 1, 0)->5
-        (0, 1, 1)->2
-        (1, 0, 0)->6
-        (1, 0, 1)->4
-        (1, 1, 0)->3
-        (1, 1, 1)->1  
+            (0, 0, 0)->10
+            (0, 0, 1)->6
+            (0, 1, 0)->6
+            (0, 1, 1)->2
+            (1, 0, 0)->7
+            (1, 0, 1)->4
+            (1, 1, 0)->4
+            (1, 1, 1)->1
         """
         # Mock the __ini__
         with patch.object(FilteredDictionary, "__init__", lambda x: None):
@@ -69,7 +69,7 @@ class TestWordCycleFunctions(unittest.TestCase):
                 "7":('v', ['GGG'], 'ccc', ''),
                 "8":('v', ['HHH'], 'ddd', '')
             }
-            expected_list=[9,6,5,2,6,4,3,1]
+            expected_list=[10,6,6,2,7,4,4,1]
             # run with all statuses -> result zipped with the expected valus -> pairs substracted from each other -> sum -> it must be 0
             self.assertEqual( sum( [ j[0]-j[1] for j in zip( [myFilteredDictionary.get_points(i) for i in myFilteredDictionary.recent_stat_list], expected_list) ] ), 0 )
             #print()
@@ -80,20 +80,20 @@ class TestWordCycleFunctions(unittest.TestCase):
         """
         Tests if a list of statistics have back the right points.
         The list and the expected points are the following:
-        (0,)->5
-        (1,)->3
-        (0, 0)->7
-        (0, 1)->4
-        (1, 0)->4
-        (1, 1)->2
-        (0, 0, 0)->9
-        (0, 0, 1)->6
-        (0, 1, 0)->5
-        (0, 1, 1)->2
-        (1, 0, 0)->6
-        (1, 0, 1)->4
-        (1, 1, 0)->3
-        (1, 1, 1)->1
+            (0,)->6
+            (1,)->3
+            (0, 0)->8
+            (0, 1)->4
+            (1, 0)->5
+            (1, 1)->2
+            (0, 0, 0)->10
+            (0, 0, 1)->6
+            (0, 1, 0)->6
+            (0, 1, 1)->2
+            (1, 0, 0)->7
+            (1, 0, 1)->4
+            (1, 1, 0)->4
+            (1, 1, 1)->1
         """
         # Mock the __ini__
         with patch.object(FilteredDictionary, "__init__", lambda x: None):
@@ -102,7 +102,7 @@ class TestWordCycleFunctions(unittest.TestCase):
             myFilteredDictionary.learning_language="swedish"
             myFilteredDictionary.recent_stat_list={i:list(i) for i in list(itertools.product([0,1], repeat=1)) + list(itertools.product([0,1], repeat=2)) + list(itertools.product([0,1], repeat=3))}
             myFilteredDictionary.word_dict={"1":('v', ['AAA'], 'aaa', '') }
-            expected_list=[5,3,7,4,4,2,9,6,5,2,6,4,3,1]
+            expected_list=[6,3,8,4,5,2,10,6,6,2,7,4,4,1]
             # run with all statuses -> result zipped with the expected valus -> pairs substracted from each other -> sum -> it must be 0
             self.assertEqual( sum( [ j[0]-j[1] for j in zip( [myFilteredDictionary.get_points(i) for i in myFilteredDictionary.recent_stat_list], expected_list) ] ), 0 )
             #print()
@@ -206,26 +206,29 @@ class TestWordCycleFunctions(unittest.TestCase):
             myFilteredDictionary.base_language="hungarian"
             myFilteredDictionary.learning_language="swedish"
             myFilteredDictionary.recent_stat_list={
-                "1":[1,1,1],    # 1 point => 1/10 probability
-                "2":[0,1,1],    # 2 points => 2/10 probability
-                "3":[1,1,0],    # 3 points => 3/10 probability
-                "4":[1,0,1],    # 4 points => 4/10 probability
+                "1":[1,1,1],    # 1 point => 1/20 probability
+                "2":[0,1,1],    # 2 points => 2/20 probability
+                "3":[1,0,1],    # 4 points => 4/20 probability
+                "4":[0,1,0],    # 6 points => 6/20 probability
+                "5":[1,0,0],    # 7 points => 7/20 probability
             }
             myFilteredDictionary.word_dict={
                 "1":('v', ['AAA'], 'aaa', ''),
                 "2":('v', ['BBB'], 'bbb', ''),
                 "3":('v', ['CCC'], 'ccc', ''),
-                "4":('v', ['DDD'], 'ddd', '')
+                "4":('v', ['DDD'], 'ddd', ''),
+                "5":('v', ['EEE'], 'eee', '')
             }
 
             loop=40000
 
             result=Counter([myFilteredDictionary.get_next_random_record().base_word for i in range(loop)])
 
-            self.assertAlmostEqual(result['aaa']/loop, 1/10, delta=0.01)
-            self.assertAlmostEqual(result['bbb']/loop, 2/10, delta=0.01)
-            self.assertAlmostEqual(result['ccc']/loop, 3/10, delta=0.01)
-            self.assertAlmostEqual(result['ddd']/loop, 4/10, delta=0.01)
+            self.assertAlmostEqual(result['aaa']/loop, 1/20, delta=0.01)
+            self.assertAlmostEqual(result['bbb']/loop, 2/20, delta=0.01)
+            self.assertAlmostEqual(result['ccc']/loop, 4/20, delta=0.01)
+            self.assertAlmostEqual(result['ddd']/loop, 6/20, delta=0.01)
+            self.assertAlmostEqual(result['eee']/loop, 7/20, delta=0.01)
     
     def test_check_answer_true( self ):
         """

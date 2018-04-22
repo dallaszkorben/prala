@@ -9,26 +9,26 @@ adjektiv:bibli-03:orolig:aggódó, gondterhelt, nyugtalan -
 
 adverb:bibli-03:verkligen:valóban, igazán
 
-e:bibli-03:han skyndar i väg:ő elsiet
-e:bibli-03:jag är rädd om mig:én vigyázok magamra
-e:bibli-03:han får ut det:ő kiviszi ezt
-e:bibli-03:stäng av larmet:kapcsold ki a riasztót
-e:bibli-03:de är alla kortare än du:ők mind alacsonyabbak nálad
-e:bibli-03:bit för bit:lépésről-lépésre, fokozatosan
-e:bibli-03:ett leende börjar sprida sig i hans ansikte:egy mosoly kezd elterjedni az ő arcán
-e:bibli-03:jag har kommit på en grej:rájöttem egy dologra:gr
-e:bibli-03:jag tror tyvärr inte att det fungerar:nem hiszem sajnos, hogy ez működik
-e:bibli-03:på något sätt har tjuven fått ut boken:valamilyen módon a tolvaj kivitte a könyvet
-e:bibli-03:han böjer sig ner:ő lehajol.
-e:bibli-03:du har hjälpt mig att lösa fallet:te segítettél nekem megoldani az ügyet
-e:bibli-03:sedan tittar de ännu mer förvånat på honom:később ők néznek még csodálkozóbban rá
-e:bibli-03:han tar sats:ő lendületet vesz
-e:bibli-03:han har full fart:teljes sebességet vesz
-e:bibli-03:försiktigt:vigyázz!
-e:bibli-03:han går in på nytt:ő bemengy újra
-e:bibli-03:han trycker på knappen så att larmet tystnar:ő megnyomja a gombot, hogy a riasztó elhalgasson
-e:bibli-03:får jag låna din penna:kölcsön kaphatom a tolladat?
-e:bibli-03:det där gjorde ont:ez ott fáj
+:bibli-03:han skyndar i väg:ő elsiet
+:bibli-03:jag är rädd om mig:én vigyázok magamra
+:bibli-03:han får ut det:ő kiviszi ezt
+:bibli-03:stäng av larmet:kapcsold ki a riasztót
+:bibli-03:de är alla kortare än du:ők mind alacsonyabbak nálad
+:bibli-03:bit för bit:lépésről-lépésre, fokozatosan
+:bibli-03:ett leende börjar sprida sig i hans ansikte:egy mosoly kezd elterjedni az ő arcán
+:bibli-03:jag har kommit på en grej:rájöttem egy dologra:gr
+:bibli-03:jag tror tyvärr inte att det fungerar:nem hiszem sajnos, hogy ez működik
+:bibli-03:på något sätt har tjuven fått ut boken:valamilyen módon a tolvaj kivitte a könyvet
+:bibli-03:han böjer sig ner:ő lehajol.
+:bibli-03:du har hjälpt mig att lösa fallet:te segítettél nekem megoldani az ügyet
+:bibli-03:sedan tittar de ännu mer förvånat på honom:később ők néznek még csodálkozóbban rá
+:bibli-03:han tar sats:ő lendületet vesz
+:bibli-03:han har full fart:teljes sebességet vesz
+:bibli-03:försiktigt:vigyázz!
+:bibli-03:han går in på nytt:ő bemengy újra
+:bibli-03:han trycker på knappen så att larmet tystnar:ő megnyomja a gombot, hogy a riasztó elhalgasson
+:bibli-03:får jag låna din penna:kölcsön kaphatom a tolladat?
+:bibli-03:det där gjorde ont:ez ott fáj
 
 
 verb:bibli-02:förvirra, förvirrar, förvirrade, förvirrat, förvirra:megzavar, zavarba ejt
@@ -64,12 +64,12 @@ adverb:bibli-02:snarare:inkább
 adverb:bibli-02:återigen:ismét, újból, megint
 adverb:bibli-02:egentligen:tulajdonképpen, valójában
 
-e:bibli-02:han stirrar tomt framför sig:ő üresen bámul magaelé
-e:bibli-02:han kommer gående med långa kliv från andra hållet:ő gyalog jön hosszú léptekkel a másik irányból
-e:bibli-02:värd en förmögenhet:egy vagyont ér
-e:bibli-02:de sträcker sig från golv till tak:azok padótól plafonig érnek
-e:bibli-02:när upptäckte du stölden:mikor fedezted fel a lopást?
-e:bibli-02:med en visst besvär rullar han undan en bokvagn:egy bizonyos nehézséggel gurit félre ő egy könyvkocsit
+:bibli-02:han stirrar tomt framför sig:ő üresen bámul magaelé
+:bibli-02:han kommer gående med långa kliv från andra hållet:ő gyalog jön hosszú léptekkel a másik irányból
+:bibli-02:värd en förmögenhet:egy vagyont ér
+:bibli-02:de sträcker sig från golv till tak:azok padótól plafonig érnek
+:bibli-02:när upptäckte du stölden:mikor fedezted fel a lopást?
+:bibli-02:med en visst besvär rullar han undan en bokvagn:egy bizonyos nehézséggel gurit félre ő egy könyvkocsit
 
 verb:bibli-01:föra, för, förde, fört, för:vezet, visz, szállít 
 verb:bibli-01:tjuta, tjuter, tjöt, tjutit, tjut:üvölt, bömböl
@@ -89,13 +89,13 @@ adjektiv:bibli-01:sällsynt:ritka, kivételes
 adverb:bibli-01:väldigt:nagyon, szörnyen, rendkívül
 adverb:bibli-01:genast:rögtön, azonnal
 
-e:bibli-01:han tittar åt det håll:ő abba az irányba néz
-e:bibli-01:han kommer gående:ő gyalog jön
-e:bibli-01:han går tvärs över gatan:ő keresztben átmegy az utcán
-e:bibli-01:rummet har stått tomt sedan en tid:a szoba üresen áll egy ideje
-e:bibli-01:larmet går igång:a riasztó müködésbe lép
-e:bibli-01:det har varit likadant de senaste tre dagarna: ez ugyanolyan volt az utolsó három nap
-e:bibli-01:en detektiv måste ha tålamod:egy detektívnek kell legyen türelme
+:bibli-01:han tittar åt det håll:ő abba az irányba néz
+:bibli-01:han kommer gående:ő gyalog jön
+:bibli-01:han går tvärs över gatan:ő keresztben átmegy az utcán
+:bibli-01:rummet har stått tomt sedan en tid:a szoba üresen áll egy ideje
+:bibli-01:larmet går igång:a riasztó müködésbe lép
+:bibli-01:det har varit likadant de senaste tre dagarna: ez ugyanolyan volt az utolsó három nap
+:bibli-01:en detektiv måste ha tålamod:egy detektívnek kell legyen türelme
 
 
 

@@ -1,6 +1,7 @@
 import sys
 import os
 import re
+from pkg_resources import resource_string
 from iso639 import to_name
 
 from prala.core import FilteredDictionary
@@ -36,6 +37,10 @@ class ConsolePrala(object):
 
     STATUS_WRONG="WRONG"
     STATUS_RIGHT="RIGHT"
+
+    TEMPLATE_INI_FILE_NAME="template.in"
+    TEMPLATE_DICT_FILE_NAME="template.dict"
+    INI_FILE_NAME="config.ini"
 
     def __init__( self, file_name, base_language, learning_language, part_of_speech_filter="", say_out=True, show_pattern=True, show_note=True ):
 
@@ -198,9 +203,9 @@ def main():
 
     if len(sys.argv) == 1:   
         print()
-        print("Usage:")
-        print("python " + sys.argv[0] + " dict_file_name [part_of_speech_filter]")
-        
+        print("No parameter added. Usage:")
+        print("   python " + sys.argv[0] + " dict_file_name [part_of_speech_filter]")
+        print()
         exit()
 
     file_name = sys.argv[1]
@@ -219,7 +224,7 @@ def main():
     DEFAULT_SHOW_PATTERN=True
     DEFAULT_SHOW_NOTE=True
 
-    file=os.path.join(os.getcwd(),'config.ini')
+    file=os.path.join(os.getcwd(), ConsolePrala.INI_FILE_NAME)
     property=Property(file)
     base_language=to_name(property.get('languages', 'base_language', DEFAULT_BASE_LANGUAGE)).lower()
     learning_language=to_name(property.get('languages', 'learning_language', DEFAULT_LEARNING_LANGUAGE)).lower()
@@ -243,7 +248,14 @@ def main():
     except NoDictionaryError as f:
         print("------------------------")
         print("Error: ")
-        print( "File name: " + f.dict_file_name)
+        print(f.dict_message + ": ", f.dict_file_name)
+        print()
+        res=input("Do you want me to generate '" + f.dict_file_name + "' dict file? Y/[n]")
+        if res.strip() == "Y":
+            temp_dict_path="/".join(("templates", ConsolePrala.TEMPLATE_DICT_FILE_NAME))
+            binary_content=resource_string(__name__, temp_dict_path)
+            with open(f.dict_file_name, "w") as f:
+                print(binary_content.decode("utf-8"), file=f)
         print("------------------------")
 
 #if __name__ == "__main__":

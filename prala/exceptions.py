@@ -11,3 +11,4 @@ class NoDictionaryError(Exception):
     def __init__(self, message):
         super().__init__(message)
         self.dict_file_name=message.filename
+        self.dict_message=message.strerror

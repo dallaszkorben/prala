@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
       name='prala',
-      version='0.0.26',
+      version='0.0.28',
       description='Practice Language',
       long_description=open('README.md').read(),
       url='http://github.com/dallaszkorben/prala',
@@ -21,7 +21,7 @@ setup(
         'console_scripts': ['pracon=prala.console:main'],
       },
       package_data={
-        'prala': ['*.txt'],
+        'prala': ['templates/*.dict'],
       },
       include_package_data = True,
       zip_safe=False)

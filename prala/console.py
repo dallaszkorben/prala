@@ -250,7 +250,7 @@ def main():
         print("Error: ")
         print(f.dict_message + ": ", f.dict_file_name)
         print()
-        res=input("Do you want me to generate '" + f.dict_file_name + "' dict file? Y/[n]")
+        res=input("Do you want me to generate '" + f.dict_file_name + "' dict file (Y/[n])?")
         if res.strip() == "Y":
             temp_dict_path="/".join(("templates", ConsolePrala.TEMPLATE_DICT_FILE_NAME))
             binary_content=resource_string(__name__, temp_dict_path)

@@ -3,6 +3,7 @@ import shelve
 import random
 import numpy as np
 import hashlib
+import re
 from prala.accessories import Enum
 from prala.exceptions import EmptyDictionaryError
 from prala.exceptions import NoDictionaryError
@@ -13,21 +14,21 @@ class FilteredDictionary(object):
     WORD_SPLITTER=","
 
     DICT_POS=Enum(
-        POS_POS=0,
-        POS_FILTER=1,
+        POS_POS_FILTER=0,
+        POS_EXTRA_FILTER=1,
         POS_LEARNING=2,
         POS_BASE=3,
         POS_NOTE=4
     )
 
     RECORD_POS= Enum(
-        POS_POS=0,
+        POS_POS_FILTER=0,
         POS_LEARNING=1,
         POS_BASE=2,
         POS_NOTE=3,
     )
 
-    def __init__(self, file_name, base_language, learning_language, part_of_speach_filter=""):
+    def __init__(self, file_name, base_language, learning_language, part_of_speach_filter="", extra_filter=""):
         """
         Opens the dictionary, 
         selects the set of the words usin filter
@@ -39,9 +40,6 @@ class FilteredDictionary(object):
             recent_stat_list <dictionary>
                             "id": [[1,0,0,1],[0, 0, 1]]
         """
-
-        #part_of_speach_filter="v"
-        extra_filter=""
 
         self.base_language=base_language
         self.learning_language=learning_language
@@ -64,7 +62,8 @@ class FilteredDictionary(object):
                     #fill up the list if it shorter
                     element_list= (element_list + [''] * type(self).DICT_POS.size())[:type(self).DICT_POS.size()]
 
-                    if len(part_of_speach_filter) == 0 or element_list[type(self).DICT_POS.POS_POS].lower() == part_of_speach_filter.lower():
+                    # filters the result by part_of_speech_filter and extra_filter
+                    if (len(part_of_speach_filter) == 0 or element_list[type(self).DICT_POS.POS_POS_FILTER].lower() == part_of_speach_filter.lower()) and (len(extra_filter) == 0 or re.compile(extra_filter).search( element_list[type(self).DICT_POS.POS_EXTRA_FILTER] ) != None ):
                         #self.word_dict[str(ln)]=(element_list[type(self).POS_DICT_POS], element_list[type(self).POS_DICT_BASE], list(map(str.strip, element_list[type(self).POS_DICT_LEARNING].strip().split(self.__class__.WORD_SPLITTER) ) ) )
 
                         learning_word_list=list(map(str.strip, element_list[type(self).DICT_POS.POS_LEARNING].strip().split(self.__class__.WORD_SPLITTER) ) )
@@ -72,7 +71,7 @@ class FilteredDictionary(object):
                         # if there is BASE word and LEARNING words
                         if element_list[type(self).DICT_POS.POS_BASE] and all(learning_word_list):
                             self.word_dict[str(ln)] = [None] * type(self).RECORD_POS.size()
-                            self.word_dict[str(ln)][type(self).RECORD_POS.POS_POS] = element_list[type(self).DICT_POS.POS_POS] 
+                            self.word_dict[str(ln)][type(self).RECORD_POS.POS_POS_FILTER] = element_list[type(self).DICT_POS.POS_POS_FILTER] 
                             self.word_dict[str(ln)][type(self).RECORD_POS.POS_LEARNING] = learning_word_list
                             self.word_dict[str(ln)][type(self).RECORD_POS.POS_BASE] = element_list[type(self).DICT_POS.POS_BASE]                            
                             self.word_dict[str(ln)][type(self).RECORD_POS.POS_NOTE] = element_list[type(self).DICT_POS.POS_NOTE] 
@@ -245,7 +244,7 @@ class Record(object):
         self.learning_language = learning_language
         self.word_id = word_id
         
-        self.part_of_speach = word[FilteredDictionary.RECORD_POS.POS_POS]
+        self.part_of_speach = word[FilteredDictionary.RECORD_POS.POS_POS_FILTER]
         self.learning_words = word[FilteredDictionary.RECORD_POS.POS_LEARNING]
         self.base_word = word[FilteredDictionary.RECORD_POS.POS_BASE]
         self.note = word[FilteredDictionary.RECORD_POS.POS_NOTE]

@@ -3,6 +3,7 @@ import os
 import re
 from pkg_resources import resource_string
 from iso639 import to_name
+from optparse import OptionParser
 
 from prala.core import FilteredDictionary
 from prala.core import Record
@@ -42,9 +43,9 @@ class ConsolePrala(object):
     TEMPLATE_DICT_FILE_NAME="template.dict"
     INI_FILE_NAME="config.ini"
 
-    def __init__( self, file_name, base_language, learning_language, part_of_speech_filter="", say_out=True, show_pattern=True, show_note=True ):
+    def __init__( self, file_name, base_language, learning_language, part_of_speech_filter="", extra_filter="", say_out=True, show_pattern=True, show_note=True ):
 
-        self.myFilteredDictionary=FilteredDictionary(file_name, base_language, learning_language, part_of_speech_filter) 
+        self.myFilteredDictionary=FilteredDictionary(file_name, base_language, learning_language, part_of_speech_filter, extra_filter) 
         self.say_out=say_out
         self.show_pattern=show_pattern
         self.show_note=show_note
@@ -201,19 +202,18 @@ class ConsolePrala(object):
 
 def main():
 
-    if len(sys.argv) == 1:   
-        print()
-        print("No parameter added. Usage:")
-        print("   python " + sys.argv[0] + " dict_file_name [part_of_speech_filter]")
-        print()
+    parser=OptionParser("usage %prog dict_file_name [-p part_of_speech_filter] [-f extra_filter]")
+    parser.add_option("--pos", "-p", dest="part_of_speech_filter", default="", type="string", help="specify part of speech")
+    parser.add_option("--filter", "-f", dest="extra_filter", default="", type="string", help="specify extra filter")
+    (options, args) = parser.parse_args()
+
+    if len(args) != 1:   
+        parser.error("Incorrect number of arguments")
         exit()
 
-    file_name = sys.argv[1]
-
-    if len(sys.argv) >= 3:
-        part_of_speech = sys.argv[2]
-    else:
-        part_of_speech = ""
+    file_name = args[0]
+    part_of_speech_filter = options.part_of_speech_filter
+    extra_filter = options.extra_filter
 
     #
     # config.ini
@@ -234,7 +234,7 @@ def main():
 
     # the reason of using it "with" is to get back the default coursor color at the end
     try:
-        with ConsolePrala(file_name, base_language, learning_language, part_of_speech_filter=part_of_speech, say_out=say_out, show_pattern=show_pattern, show_note=show_note) as cp:
+        with ConsolePrala(file_name, base_language, learning_language, part_of_speech_filter=part_of_speech_filter, extra_filter=extra_filter, say_out=say_out, show_pattern=show_pattern, show_note=show_note) as cp:
             wrong_record=None
             while True:
                 wrong_record=cp.round(wrong_record)

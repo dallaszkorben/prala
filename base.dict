@@ -2,10 +2,10 @@ verb:bibli-03:fösa, föser, föste, föst, fös:hajt, terel, kerget:
 verb:bibli-03:sprida, sprider, spred, spritt, sprid:terjeszt, áraszt, szór:
 verb:bibli-03:vrida, vrider, vred, vridit, vrid:forgat, fordít, csavar:
 
-substantiv:bibli-03:ett leende, leendet, leenden, leendena:mosoly:
-substantiv:bibli-03:en smäll, smällen, smällar, smällarna:csattanás:
+noun:bibli-03:ett leende, leendet, leenden, leendena:mosoly:
+noun:bibli-03:en smäll, smällen, smällar, smällarna:csattanás:
 
-adjektiv:bibli-03:orolig:aggódó, gondterhelt, nyugtalan:
+adjective:bibli-03:orolig:aggódó, gondterhelt, nyugtalan:
 
 adverb:bibli-03:verkligen:valóban, igazán:
 
@@ -43,19 +43,19 @@ verb:bibli-02:snyta, snyter, snöt, snutit, snyt:orrot fúj, orrot töröl
 verb:bibli-02:snyfta:sírdogál, pityereg
 verb:bibli-02:gapa:tátong
 
-substantiv:bibli-02:en fjäril, fjärilen, fjärilar, fjärilarna:lepke, pillangó
-substantiv:bibli-02:en förmögenhet:vagyon, gazdagság, javak
-substantiv:bibli-02:en ytterdörr:külső ajtó, bejárati ajtó
-substantiv:bibli-02:en skylt:tábla, cégtábla
-substantiv:bibli-02:ett besvär:nehézség, fáradság, panasz
-substantiv:bibli-02:en stöld:lopás, eltulajdonítás
-substantiv:bibli-02:en stängningsdags:zárás ideje
-substantiv:bibli-02:en vana:szokás, gyakorlat, rutin
+noun:bibli-02:en fjäril, fjärilen, fjärilar, fjärilarna:lepke, pillangó
+noun:bibli-02:en förmögenhet:vagyon, gazdagság, javak
+noun:bibli-02:en ytterdörr:külső ajtó, bejárati ajtó
+noun:bibli-02:en skylt:tábla, cégtábla
+noun:bibli-02:ett besvär:nehézség, fáradság, panasz
+noun:bibli-02:en stöld:lopás, eltulajdonítás
+noun:bibli-02:en stängningsdags:zárás ideje
+noun:bibli-02:en vana:szokás, gyakorlat, rutin
 
-adjektiv:bibli-02:värd:érdemes, méltó, érő, értékű
-adjektiv:bibli-02:enda:egyetlen, egyedüli
-adjektiv:bibli-02:tung, tungt, tunga:nehéz, súlyos
-adjektiv:bibli-02:viss, visst, vissa:meghatározott, bizonyos
+adjective:bibli-02:värd:érdemes, méltó, érő, értékű
+adjective:bibli-02:enda:egyetlen, egyedüli
+adjective:bibli-02:tung, tungt, tunga:nehéz, súlyos
+adjective:bibli-02:viss, visst, vissa:meghatározott, bizonyos
 
 adverb:bibli-02:nerför:lefelé
 adverb:bibli-02:ändå:mégis, úgyis, mindenképpen
@@ -78,13 +78,13 @@ verb:bibli-01:knäppa, knäpper, knäppte, knäppt, knäpp:csettint, pattint, go
 verb:bibli-01:leda, leder, ledde, lett, led:vezet, visz, eredményez
 verb:bibli-01:rusa, rusar, rusade, rusat, rusa:rohan, siet
 
-substantiv:bibli-01:en hantverkare:kisiparos, mesterember
-substantiv:bibli-01:en portfölj:aktatáska
-substantiv:bibli-01:ett tålamod, tålamodet: türelem
+noun:bibli-01:en hantverkare:kisiparos, mesterember
+noun:bibli-01:en portfölj:aktatáska
+noun:bibli-01:ett tålamod, tålamodet: türelem
 
-adjektiv:bibli-01:stilig:csinos, elegáns
-adjektiv:bibli-01:dyrbar:értékes
-adjektiv:bibli-01:sällsynt:ritka, kivételes
+adjective:bibli-01:stilig:csinos, elegáns
+adjective:bibli-01:dyrbar:értékes
+adjective:bibli-01:sällsynt:ritka, kivételes
 
 adverb:bibli-01:väldigt:nagyon, szörnyen, rendkívül
 adverb:bibli-01:genast:rögtön, azonnal

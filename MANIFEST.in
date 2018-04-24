@@ -1,3 +1,2 @@
 include prala/templates/*.dict
-include templates/*.dict
 include *.dict

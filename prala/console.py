@@ -41,7 +41,7 @@ class ConsolePrala(object):
 
     TEMPLATE_INI_FILE_NAME="template.in"
     TEMPLATE_DICT_FILE_NAME="template.dict"
-    INI_FILE_NAME="config.ini"
+#    INI_FILE_NAME="config.ini"
 
     def __init__( self, file_name, base_language, learning_language, part_of_speech_filter="", extra_filter="", say_out=True, show_pattern=True, show_note=True ):
 
@@ -218,14 +218,16 @@ def main():
     #
     # config.ini
     #
-    DEFAULT_BASE_LANGUAGE="en"
-    DEFAULT_LEARNING_LANGUAGE="sv"
-    DEFAULT_SAY_OUT=True
-    DEFAULT_SHOW_PATTERN=True
-    DEFAULT_SHOW_NOTE=True
-
-    file=os.path.join(os.getcwd(), ConsolePrala.INI_FILE_NAME)
-    property=Property(file)
+    from prala.accessories import DEFAULT_LANGUAGE
+    from prala.accessories import DEFAULT_BASE_LANGUAGE
+    from prala.accessories import DEFAULT_LEARNING_LANGUAGE
+    from prala.accessories import DEFAULT_SAY_OUT
+    from prala.accessories import DEFAULT_SHOW_PATTERN
+    from prala.accessories import DEFAULT_SHOW_NOTE
+    
+    #file=os.path.join(os.getcwd(), INI_FILE_NAME)
+    property=Property.getInstance()
+    language=property.get('language', 'language', DEFAULT_LANGUAGE)    
     base_language=to_name(property.get('languages', 'base_language', DEFAULT_BASE_LANGUAGE)).lower()
     learning_language=to_name(property.get('languages', 'learning_language', DEFAULT_LEARNING_LANGUAGE)).lower()
     say_out=property.get_boolean('general', 'say_out', DEFAULT_SAY_OUT)    

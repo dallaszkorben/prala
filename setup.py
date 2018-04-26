@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
       name='prala',
-      version='0.0.28',
+      version='0.0.29',
       description='Practice Language',
       long_description=open('README.md').read(),
       url='http://github.com/dallaszkorben/prala',
@@ -15,8 +15,8 @@ setup(
         "Operating System :: OS Independent",
       ],
       packages = find_packages(),
-      setup_requires=["numpy", "pyttsx3", 'configparser', 'iso639==0.1.4'],
-      install_requires=['numpy','pyttsx3', 'configparser', 'iso639==0.1.4' ],
+      setup_requires=["pyqt5", "numpy", "pyttsx3", 'configparser', 'iso639==0.1.4'],
+      install_requires=["pyqt5", 'numpy','pyttsx3', 'configparser', 'iso639==0.1.4' ],
       entry_points = {
         'console_scripts': ['pracon=prala.console:main'],
       },

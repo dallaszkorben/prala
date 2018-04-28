@@ -1,9 +1,19 @@
 import sys
-#from prala.accessories import _
-from PyQt5.QtWidgets import QToolTip, QMainWindow, QPushButton, QApplication, QMessageBox, QDesktopWidget, QAction, QMenu
-from PyQt5.QtGui import QFont    
+from prala.accessories import _
+#from PyQt5.QtWidgets import QToolTip, QMainWindow, QPushButton, QApplication, QMessageBox, QDesktopWidget, QAction, QMenu
+#from PyQt5.QtGui import QFont    
 
-class Example(QMainWindow):
+from PyQt5.QtWidgets import (QWidget, QGridLayout, 
+    QLabel, QPushButton, QLineEdit, QApplication,
+    )
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap
+from PyQt5 import QtWidgets
+
+
+from pkg_resources import resource_string, resource_filename
+
+class Example(QWidget):
     
     def __init__(self):
         super().__init__()
@@ -13,73 +23,68 @@ class Example(QMainWindow):
         
     def initUI(self):        
                 
-        # --- Status bar ---
-        self.statusBar().showMessage('Ready')
+        # --------------------
+        # Fields
+        # --------------------
+        #
+        question_title=QLabel(_("TITLE_QUESTION"))
+        question_field=QLabel("here is the question")
 
-        # --- Button ---
-        btn = QPushButton('Change Status', self)
-        btn.clicked.connect(self.on_click)
-        QToolTip.setFont(QFont('SansSerif', 10))
-        btn.setToolTip('This is a <b>QPushButton</b> widget')
-        btn.resize(btn.sizeHint())        
-        btn.move(50, 50)   
+        resource_path="/".join(("images", "red-light.png"))
+        binary_content=resource_filename(__name__, resource_path)
+        pixmap = QPixmap(binary_content)        
+        pixmap = pixmap.scaled(42, 42, Qt.KeepAspectRatio, Qt.FastTransformation)
+        result_field=QLabel()
+        result_field.setPixmap(pixmap)
 
-        # --- Menu ---
-        # main menu
-        # File
-        menubar = self.menuBar()
-        fileMenu = menubar.addMenu('&File')
+        answear_title=QLabel(_("TITLE_ANSWEAR"))
+        answear_field=QLineEdit()
+        good_answear_field=QLabel("here is the good answer")
 
-        # sub menus        
-        # File-Import
-        importMenu = QMenu('&Import', self)  
-        fileMenu.addMenu(importMenu)
-        
-        # File-Quit
-        quitAct = QAction('&Quit', self)
-        quitAct.triggered.connect(QApplication.instance().quit)
-        fileMenu.addAction(quitAct)
+        ok_button=QPushButton(_("BUTTON_OK"))
 
-        # File-Import-Import mail
-        impMailAct = QAction('Import &Mail', self)
-        importMenu.addAction(impMailAct)
+        stat_good_field=QLineEdit("1")
+        stat_asked_field=QLineEdit("4")
+        stat_remains_field=QLineEdit("6")
+        stat_percent_field=QLineEdit("40")
+        stat_percent_sign_label=QLabel("%")
 
-        # --- Window ---
-        self.setWindowTitle('Tooltips')    
-        self.setGeometry(300, 300, 300, 200)
-        self.center()
-        self.show()    
+        stat_history=QLabel("1 0 0 1 1")
+        stat_points=QLineEdit("8")
 
-    def on_click(self):
-        self.statusBar().showMessage('Status changed')
+        # --------------------
+        # general grid setting
+        # --------------------
+        #
+        grid=QGridLayout()
+        self.setLayout(grid)
+        grid.setSpacing(1)
 
-    def closeEvent(self, event):
-        """This method is called when the window is about to close"""    
+        # --------------------
+        # Fields location
+        # --------------------
 
-        # --- Message Box ---        
-        reply = QMessageBox.question(self, 'Message',
-            "Are you sure to quit?", QMessageBox.Yes | 
-            QMessageBox.No, QMessageBox.No)
+        fields_rows=4
 
-        if reply == QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()   
+        grid.addWidget( question_title, 0, 0, 1, fields_rows )
+        grid.addWidget( question_field, 1, 0, 1, fields_rows )
 
-    def center(self):
-        """Aligns the window to middle on the screen"""
-        fg=self.frameGeometry()
-        cp=QDesktopWidget().availableGeometry().center()
-        fg.moveCenter(cp)
-        self.move(fg.topLeft())
+        grid.addWidget( result_field, 2, fields_rows-1, 1, 1, Qt.AlignRight )
+
+        grid.addWidget( answear_title, 4, 0, 1, fields_rows)
+        grid.addWidget( answear_field, 5, 0, 1, fields_rows)
+        grid.addWidget( good_answear_field, 6, 0, 1, fields_rows )
+        #grid.addWidget( stat_, 7, 0, 1, fields_rows ) 
+        grid.addWidget( stat_history, 8, 0, 1, fields_rows )
 
 
+        self.setGeometry(300, 300, 450, 150)
+        self.setWindowTitle(_("TITLE_WINDOW"))    
+        self.show()
 
 def main():    
-    #ex = Example()
-    #sys.exit(app.exec_())
-    #app = QApplication(sys.argv)
-
-    from prala.accessories import _
-    print(_("MUST_BE_TRANSLATED"))
-    print(_("ANOTHER_TRANSLATION"))
+    app = QApplication(sys.argv)
+    ex = Example()
+    sys.exit(app.exec_())
+    
+    

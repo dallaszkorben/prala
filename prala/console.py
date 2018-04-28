@@ -226,7 +226,7 @@ def main():
     from prala.accessories import DEFAULT_SHOW_NOTE
     
     #file=os.path.join(os.getcwd(), INI_FILE_NAME)
-    property=Property.getInstance()
+    property=Property.get_instance()
     language=property.get('language', 'language', DEFAULT_LANGUAGE)    
     base_language=to_name(property.get('languages', 'base_language', DEFAULT_BASE_LANGUAGE)).lower()
     learning_language=to_name(property.get('languages', 'learning_language', DEFAULT_LEARNING_LANGUAGE)).lower()

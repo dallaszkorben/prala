@@ -20,8 +20,8 @@ msgstr "Prala"
 msgid "TITLE_QUESTION"
 msgstr "Question"
 
-msgid "TITLE_ANSWEAR"
-msgstr "Answear"
+msgid "TITLE_ANSWER"
+msgstr "Answer"
 
 msgid "TITLE_STAT"
 msgstr "Stat"

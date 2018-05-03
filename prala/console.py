@@ -81,11 +81,18 @@ class ConsolePrala(object):
             template=re.sub(r"[^, \!]", "_", ", ".join(record.learning_words))
         else:
             template=""
+        
+        # cut the answer by the separator -> list
         line=[ i.strip() for i in self.get_input(template).split(",")]
+        
+        # shows the difference between the the answer and the good answer -> tuple
+        # [0] -> False/True
+        # [1] -> list of list of the positions of the difference in the words
         result=record.check_answer(line)
 
         # write back the stat
         self.myFilteredDictionary.add_result_to_stat(record.word_id,result[0])
+
         # good answer
         if result[0]:
             self.out_good_answer_right(record.learning_words)

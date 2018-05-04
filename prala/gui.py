@@ -28,26 +28,15 @@ class Example(QWidget):
         #
         question_title=QLabel(_("TITLE_QUESTION") + ":")
         question_field=QuestionField("Here is the question")
-        #question_field=QLabel("here is the question")
-        #question_field.setStyleSheet('basic_color: brown')
-
-        self.result_field=ResultWidget(failed_position_list=None)
-
-        answer_title=QLabel(_("TITLE_ANSWER") + ":") 
-
+ 
         self.good_answer=["hej", "HelloWorld", "a", "ez pedig egy kicsit hosszabb"]
 
-        self.answer_field=AnswerField(self.good_answer, self.palette().color(QPalette.Background))
+        answer_title=QLabel(_("TITLE_ANSWER") + ":") 
+        self.answer_field=AnswerField(self.good_answer, bg=self.palette().color(QPalette.Background))
 
+        self.good_answer_field=ExpectedAnswerField(self.good_answer, bg=self.palette().color(QPalette.Background))
 
-        #print(self.palette().basic_color(QPalette.Base).name())
-        #myFont = self.answer_field.font()  
-        #myFont=QtGui.QFont()
-        #myFont.setBold(True)
-        #self.answer_field.setFont(myFont)
-        #self.answer_field.setStyleSheet('basic_color: blue; font: 30 pt bold; basic_size:18')
-
-        self.good_answer_field=GoodAnswerField(self.good_answer, self.palette().color(QPalette.Background))
+        self.result_lamp=ResultWidget(failed_position_list=None)
 
         ok_button_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button.png"))))        
         ok_button_hover_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-hover.png"))))        
@@ -83,12 +72,12 @@ class Example(QWidget):
         grid.addWidget( question_title, 0, 0, 1, fields_rows )
         grid.addWidget( question_field, 1, 0, 1, fields_rows )
 
-        #grid.addWidget( self.result_field, 2, fields_rows-1, 1, 1, Qt.AlignRight )
+        #grid.addWidget( self.result_lamp, 2, fields_rows-1, 1, 1, Qt.AlignRight )
 
         grid.addWidget( answer_title, 4, 0, 1, fields_rows)
         grid.addWidget( self.answer_field, 5, 0, 1, fields_rows-1)
         grid.addWidget( self.good_answer_field, 6, 0, 1, fields_rows )
-        grid.addWidget( self.result_field, 6, fields_rows-1, 1, 1, Qt.AlignCenter )
+        grid.addWidget( self.result_lamp, 6, fields_rows-1, 1, 1, Qt.AlignCenter )
         #grid.addWidget( stat_, 7, 0, 1, fields_rows ) 
         grid.addWidget( stat_history, 8, 0, 1, fields_rows )
         
@@ -100,9 +89,9 @@ class Example(QWidget):
         self.show()
 
     def on_click(self):
-        self.result_field.set_result(False)
-        self.good_answer_field.show_text()
-        self.answer_field.start_correction([[],[1],[],[]])
+        self.answer_field.disableText()
+        self.result_lamp.set_result(False)
+        self.good_answer_field.showText([[],[1],[],[]], self.answer_field.getFieldsContentList())
 
 class QuestionField(QLabel):
     FONT_SIZE = 13
@@ -126,160 +115,208 @@ class AnswerField(QWidget):
     FONT_BASIC_COLOR = Qt.blue
     FONT_BG = Qt.white
 
-    def __init__(self, good_answer_list, bg):
-        super().__init__()
-        self.bg = bg
-        self.set_fields(good_answer_list)
+    def __init__(self, expected_word_list, bg):
+        super().__init__()        
+        
+        self.__bg = bg
+        self.__set_fields(expected_word_list)
 
-    def start_input(self):
-        for i in range(self.layout.count()):
+    def __set_fields(self, expected_word_list):
+        """
+        Every time when it is called, a new layout will be generated
+        """
+        self.__expected_word_list=expected_word_list
 
-            widget = self.layout.itemAt(i).widget()
+        self.layout=QHBoxLayout()
+        self.layout.setSpacing(1)
+        
+        for i in expected_word_list:
+            self.layout.addWidget( self._get_single_field(i) )
+        self.layout.addStretch(10)
+        self.setLayout(self.layout)
+
+    def _get_single_field(self, word):
+        """
+        Returns the empty SingleField of the specific part of the word
+        with the right length, font size, basic_bg for inside use
+        """
+        return SingleField(len(word), size=AnswerField.FONT_BASIC_SIZE, color=AnswerField.FONT_BASIC_COLOR, bg=self.getBackgroundColor())
+
+    def clearText(self):
+        """
+        Clear all fields of text
+        """
+        for widget in self.getFieldIterator():
+            widget.clear()
+
+    def disableText(self):
+        """
+        Disable all fields
+        """
+        for widget in self.getFieldIterator():
+            widget.setEnabled( False )
+
+    def enableText(self):
+        """
+        Enable all fields to edit
+        """
+        for widget in self.getFieldIterator():
+            widget.setEnabled( True )
+
+    def getBackgroundColor(self):
+        return self.__bg
+
+    def getExpectedWordList(self):
+        return self.__expected_word_list
+    
+    def getFieldsContentList(self):
+        """
+        Returns the contents of the fields in a list
+        """
+        fields_content_list = []
+        
+        for widget in self.getFieldIterator():
             
-            if isinstance(widget, SingleField):
-                widget.ready_to_input()
+            # adds the text from the field to the list
+            fields_content_list.append( widget.toPlainText().strip() )
 
-    def __get_answer_list(self):
-        
-        answer_list = []
-        
+        return fields_content_list
+
+        #for i in range(self.layout.count()):
+        #
+        #    # self.layout.itemAt(i) -> QWidgetItem
+        #    widget = self.layout.itemAt(i).widget()
+        #    
+        #    if isinstance(widget, SingleField):
+        #        fields_content_list.append( widget.toPlainText().strip() )
+        #return fields_content_list
+
+    def getFieldIterator(self):
+        """
+        Returns the SingleField widgets
+        """
         for i in range(self.layout.count()):
 
             # self.layout.itemAt(i) -> QWidgetItem
             widget = self.layout.itemAt(i).widget()
             
             if isinstance(widget, SingleField):
-                answer_list.append( widget.toPlainText().strip() )
-        return answer_list
+                yield widget
+
+
+class ExpectedAnswerField(AnswerField):
+    FONT_SIZE = 15
+    FONT_COLOR = Qt.black
+    def __init__(self, word_list, bg):
+        super().__init__(word_list, bg)
         
-    def start_correction(self, failed_position_list):      
+    def _get_single_field(self, word):
+        """
+        Returns the empty SingleField of the specific part of the word
+        with the right length, font size, basic_bg for inside use
+        """
+        sf = SingleField(len(word), size=ExpectedAnswerField.FONT_SIZE, color=ExpectedAnswerField.FONT_COLOR, bg=self.getBackgroundColor())
+        sf.setEnabled(False)
+        return sf
 
-        answer_list=self.__get_answer_list()              
+    def showText(self, failed_position_list, answer_list):      
+        """
+        Shows the expected answer, coloring the faild characters in position
+        """
 
-        # complite the number of words if missing in both direction
-        # finally we get same number of answers and questions
-        zipped_list=list(zip( 
-            answer_list + ["_"*len(i) for i in self.good_answer_list][len(answer_list):], 
-            self.good_answer_list + [" "*len(i) for i in answer_list][len(self.good_answer_list):] 
-        ) )
-
-        # complite the length of the answers if they shorter than the good answer
-        completed_answer=[i[0] + ("_"*len(i[1]))[len(i[0]):] for i in zipped_list]
+        good_answer_list = self.getExpectedWordList()
 
         # go trough the answer and the failed_position_list pairs        
-        word_failed_position_pair_list = list(zip( completed_answer, failed_position_list ))
+        #word_failed_position_pair_list = list(zip( completed_answer, failed_position_list ))
+        word_failed_position_pair_list = list(zip( good_answer_list, failed_position_list ))
+
+        self.clearText()
 
         # trough the widgets in the layout
+        #for widget in self.getFieldIterator():
         for i in range(self.layout.count()):
 
             # self.layout.itemAt(i) -> QWidgetItem
             widget = self.layout.itemAt(i).widget()
             if isinstance(widget, SingleField):
-
-                # if the i. list in the failed_position_list is not empty
-                #if failed_position_list[i]:
-                if True: #word_failed_position_pair_list[i][1]:
-                    # then we need to show the difference
-
-                    # start the single field correnction
-                    # remove the text from the field
-                    # disable field
-                    widget.ready_to_correction()
 
                     # go trough all characters in the widget
                     for pos in range(len(word_failed_position_pair_list[i][0])):
 
                         if pos in word_failed_position_pair_list[i][1]:
-                            
-                            # font basic_color and background basic_color
-                            #palette = QPalette()
-                            #palette.setColor(QPalette.Text, Qt.red)
-                            #palette.setColor(widget.backgroundRole(), AnswerField.FONT_BG)                            
-                            #widget.setPalette( palette )
-                            widget.append_fail(word_failed_position_pair_list[i][0][pos])
-
+                            widget.appendText(word_failed_position_pair_list[i][0][pos], color=Qt.red)
                           
-                        #    sys.stdout.write(type(self).COLOR_CORRECTION_WRONG)
                         else:
-                            #palette = QPalette()
-                            #palette.setColor(QPalette.Text, Qt.green)
-                            #palette.setColor(widget.backgroundRole(), AnswerField.FONT_BG)                            
-                            #widget.setPalette( palette )
-                            widget.append_pass(word_failed_position_pair_list[i][0][pos])
-                        
-                        #print(word_failed_position_pair_list[i][0][pos])
-                        
-                        #widget.insert(word_failed_position_pair_list[i][0][pos])
-
-    def set_fields(self, good_answer_list):
-
-        self.good_answer_list=good_answer_list
-
-        self.layout=QHBoxLayout()
-        self.layout.setSpacing(1)
-        
-        for i in good_answer_list:
-            self.layout.addWidget( self.getSingleField(i) )
-        self.layout.addStretch(10)
-        self.setLayout(self.layout)
-
-    def getSingleField(self, word):
-        return SingleField(len(word), AnswerField.FONT_BASIC_SIZE, AnswerField.FONT_BASIC_COLOR, self.bg)
-
-class GoodAnswerField(AnswerField):
-    FONT_SIZE = 15
-    FONT_COLOR = Qt.red
-    def __init__(self, word_list, bg):
-        self.word_list=word_list
-        self.bg=bg
-        super().__init__(word_list, bg)
-        
-    def getSingleField(self, word):
-        sf = SingleField(len(word), GoodAnswerField.FONT_SIZE, GoodAnswerField.FONT_COLOR, self.bg)
-        sf.setEnabled(False)
-        return sf
-
-    def show_text(self):
-        j=0
-        for i in self.word_list:
-            widget=self.layout.itemAt(j).widget()
-            widget.setText( i )
-            j += 1
+                            widget.appendText(word_failed_position_pair_list[i][0][pos], color=Qt.green)
 
 class SingleField(QTextEdit):
 
-    state = Enum(
-        INPUT=0,
-        CORRECTION=1
-    )
+    BASIC_FONT = "Courier New"
+    BASIC_SIZE = 12
+    BASIC_COLOR = Qt.black
+    BASIC_BG = Qt.white
 
-    def __init__(self, length, basic_size, basic_color, background):
+    def __init__(self, length, font=None, size=None, color=None, bg=None):
         super().__init__()
 
-        self.single_field_correction = None
+        if font == None:
+            self.basic_font=SingleField.BASIC_FONT
+        else:
+            self.basic_font=font
+        if size == None:
+            self.basic_size = SingleField.BASIC_SIZE
+        else:
+            self.basic_size = size
+        if color == None:
+            self.basic_color = SingleField.BASIC_COLOR
+        else:
+            self.basic_color = color
+        if bg == None:
+            self.basic_bg = SingleField.BASIC_BG
+        else:
+            self.basic_bg = bg
 
         self.length = length
-        self.basic_size=basic_size
-        self.basic_color=basic_color
-        self.background=background
 
+        # No Border
         self.setFrameStyle(QFrame.NoFrame)
           
+        # No ScrollBar
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         # font, colors
         self.__set_basic_font()
 
-        # height
+        # Vertical size of the field (1 line)
         self.setFixedHeight(self.fontMetrics().height() + 3)
 
-        # widht of 'W'
+        # Horizontal size of the field
         self.setFixedWidth(self.fontMetrics().width("W" * length) + 10)
 
-        self.ready_to_input()
-
+        # for control the number of the characters in the field
         self.textChanged.connect(self.changed_text)
+
+    def __set_basic_font(self):
+       
+        # monospace font - basic_size:15 Bold
+        self.setFont(QFont("Courier New",pointSize=self.basic_size, weight=QFont.Bold))
+
+        # font basic_color and basic_bg basic_color
+        palette = self.palette()   # QPalette()
+        palette.setColor(QPalette.Text, self.basic_color)
+        palette.setColor(self.backgroundRole(), self.basic_bg)
+        self.setPalette( palette )
+
+    def appendText( self, text, color=None, bg=None ):
+        if color == None:
+            color = self.basic_color
+        if bg == None:
+            bg = self.basic_bg
+
+        self.setTextColor(color)
+        self.setTextBackgroundColor(bg)
+        self.insertPlainText(text)
 
     def keyPressEvent(self, event):
         key = event.key()
@@ -288,6 +325,7 @@ class SingleField(QTextEdit):
         else:
             QTextEdit.keyPressEvent(self, event)
     
+#    def textChanged( self, )
 
     def changed_text(self):
         
@@ -300,52 +338,21 @@ class SingleField(QTextEdit):
 
         print(self.toPlainText())
 
-    def __set_basic_font(self):
-       
-        # monospace font - basic_size:15 Bold
-        self.setFont(QFont("Courier New",pointSize=self.basic_size, weight=QFont.Bold))
 
-        # font basic_color and background basic_color
-        palette = self.palette()
-        #palette = self.viewport().palette() # QPalette()
-        palette.setColor(QPalette.Text, self.basic_color)
-        palette.setColor(self.backgroundRole(), self.background)
-        self.setPalette( palette )
 
-    def ready_to_correction(self):
-        self.setEnabled( False )
-        self.clear()
-        self.state=SingleField.state.CORRECTION
-
-    def ready_to_input(self):
-        self.setEnabled( True )
-        self.clear()
-        self.state=SingleField.state.INPUT
-
-    def append_pass( self, text ):
-        if self.state == SingleField.state.CORRECTION:
-            self.setTextColor(Qt.green)
-            self.setTextBackgroundColor(self.background)
-            self.insertPlainText(text)
-
-    def append_fail( self, text ):
-        if self.state == SingleField.state.CORRECTION:
-            self.setTextColor(Qt.red)
-            self.setTextBackgroundColor(self.background)            
-            self.insertPlainText(text)
 
     
 class __SingleField(QLineEdit):
-        def __init__(self, length, basic_size, basic_color, background):
+        def __init__(self, length, basic_size, basic_color, basic_bg):
             QLineEdit.__init__(self)
             
             # monospace font - basic_size:15 Bold
             self.setFont(QFont("Courier New",pointSize=basic_size, weight=QFont.Bold))
 
-            # font basic_color and background basic_color
+            # font basic_color and basic_bg basic_color
             palette = QPalette()
             palette.setColor(QPalette.Text, basic_color)
-            palette.setColor(self.backgroundRole(), background)
+            palette.setColor(self.backgroundRole(), basic_bg)
             self.setPalette( palette )
 
             # border not visible

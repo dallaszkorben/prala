@@ -1,7 +1,12 @@
 import sys
 from prala.accessories import _, Enum
-#from PyQt5.QtWidgets import QToolTip, QMainWindow, QPushButton, QApplication, QMessageBox, QDesktopWidget, QAction, QMenu
-#from PyQt5.QtGui import QFont    
+from prala.core import FilteredDictionary
+from prala.core import Record
+from prala.accessories import Property
+from prala.exceptions import EmptyDictionaryError
+from prala.exceptions import NoDictionaryError
+
+from threading import Thread
 
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QFrame, 
@@ -12,13 +17,25 @@ from PyQt5.QtGui import QPixmap, QIcon, QPalette
 from PyQt5.QtWidgets import QAbstractButton
 from pkg_resources import resource_string, resource_filename
 
-class Example(QWidget):
+
+class GuiPrala(QWidget):
+
+    STATUS = Enum(
+        ACCEPT = 0,
+        NEXT = 1
+    )
     
-    def __init__(self):
+    def __init__(self, file_name, base_language, learning_language, part_of_speech_filter="", extra_filter="", say_out=True, show_pattern=True, show_note=True):
         super().__init__()
         
+        self.myFilteredDictionary=FilteredDictionary(file_name, base_language, learning_language, part_of_speech_filter, extra_filter) 
+        self.say_out=say_out
+        self.show_pattern=show_pattern
+        self.show_note=show_note
+
         self.initUI()
         
+        self.round()
         
     def initUI(self):        
                 
@@ -27,14 +44,14 @@ class Example(QWidget):
         # --------------------
         #
         question_title=QLabel(_("TITLE_QUESTION") + ":")
-        question_field=QuestionField("Here is the question")
+        self.question_field=QuestionField("")
  
-        self.good_answer=["hej", "HelloWorld", "a", "ez pedig egy kicsit hosszabb"]
+        good_answer=[""]
 
         answer_title=QLabel(_("TITLE_ANSWER") + ":") 
-        self.answer_field=AnswerField(self.good_answer, bg=self.palette().color(QPalette.Background))
+        self.answer_field=AnswerField(good_answer, bg=self.palette().color(QPalette.Background))
 
-        self.good_answer_field=ExpectedAnswerField(self.good_answer, bg=self.palette().color(QPalette.Background))
+        self.good_answer_field=ExpectedAnswerField(good_answer, bg=self.palette().color(QPalette.Background))
 
         self.result_lamp=ResultWidget(failed_position_list=None)
 
@@ -43,9 +60,9 @@ class Example(QWidget):
         ok_button_pressed_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-pressed.png"))))        
 
         #pixmap = pixmap.scaled(42, 42, Qt.KeepAspectRatio, Qt.FastTransformation)
-        ok_button = PicButton(ok_button_pixmap, ok_button_hover_pixmap, ok_button_pressed_pixmap)
-        ok_button.clicked.connect(self.on_click)
-
+        self.ok_button = PicButton(ok_button_pixmap, ok_button_hover_pixmap, ok_button_pressed_pixmap)
+        #self.button_status = GuiPrala.STATUS.ACCEPT
+        self.ok_button.clicked.connect(self.on_click)
 
         stat_good_field=QLineEdit("1")
         stat_asked_field=QLineEdit("4")
@@ -62,7 +79,7 @@ class Example(QWidget):
         #
         grid=QGridLayout()
         self.setLayout(grid)
-        grid.setSpacing(1)
+        grid.setSpacing(1)      #space between the fields
 
         # --------------------
         # Fields location
@@ -70,7 +87,7 @@ class Example(QWidget):
 
         fields_rows=4
         grid.addWidget( question_title, 0, 0, 1, fields_rows )
-        grid.addWidget( question_field, 1, 0, 1, fields_rows )
+        grid.addWidget( self.question_field, 1, 0, 1, fields_rows )
 
         #grid.addWidget( self.result_lamp, 2, fields_rows-1, 1, 1, Qt.AlignRight )
 
@@ -81,17 +98,72 @@ class Example(QWidget):
         #grid.addWidget( stat_, 7, 0, 1, fields_rows ) 
         grid.addWidget( stat_history, 8, 0, 1, fields_rows )
         
-        grid.addWidget( ok_button, 5, fields_rows-1, 1, 1 )
+        grid.addWidget( self.ok_button, 5, fields_rows-1, 1, 1 )
 
 
         self.setGeometry(300, 300, 450, 150)
         self.setWindowTitle(_("TITLE_WINDOW"))    
         self.show()
 
+    def round( self, wrong_record=None ):
+        
+        self.record = self.myFilteredDictionary.get_next_random_record(wrong_record)
+
+        ## clear and enable answer fields
+        #self.answer_field.enableText()
+
+        # button status = ACCEPT
+        self.button_status  = GuiPrala.STATUS.ACCEPT
+
+        # show part of speech: record.part_of_speach
+        
+        good_answer = self.record.learning_words
+
+        # question
+        self.question_field.setField( self.record.base_word )
+
+        # answer
+        self.answer_field.setExpectedWordList( good_answer )
+
+        # expected answer
+        self.good_answer_field.setExpectedWordList( good_answer )
+
+        # say out the question in a thread
+        if self.say_out:
+            Thread(target = self.record.say_out_base, args = ()).start()
+
+
     def on_click(self):
-        self.answer_field.disableText()
-        self.result_lamp.set_result(False)
-        self.good_answer_field.showText([[],[1],[],[]], self.answer_field.getFieldsContentList())
+        
+        if self.button_status == GuiPrala.STATUS.ACCEPT:
+        
+            self.answer_field.disableText()
+
+            # shows the difference between the the answer and the good answer -> tuple
+            # [0] -> False/True
+            # [1] -> list of list of thedisable positions of the difference in the words
+            result=self.record.check_answer(self.answer_field.getFieldsContentList())
+
+            if result[0]:
+                self.result_lamp.set_result(True)
+            else:
+                self.result_lamp.set_result(False)
+
+            self.good_answer_field.showText(result[1], self.answer_field.getFieldsContentList())
+
+            self.button_status = GuiPrala.STATUS.NEXT
+            
+            # say out the right answer in thread          
+            if self.say_out:
+                Thread(target = self.record.say_out_learning, args = ()).start()
+
+        elif self.button_status == GuiPrala.STATUS.NEXT:
+
+            #self.answer_field.enableText()
+
+            #self.button_status  = GuiPrala.STATUS.ACCEPT
+
+            self.round()
 
 class QuestionField(QLabel):
     FONT_SIZE = 13
@@ -105,9 +177,9 @@ class QuestionField(QLabel):
         palette.setColor(self.foregroundRole(), QuestionField.FONT_COLOR)
         self.setPalette( palette )
 
-        self.set_fields(question)
+        self.setField(question)
 
-    def set_fields(self, question):
+    def setField(self, question):
         self.setText(question)
 
 class AnswerField(QWidget):
@@ -119,21 +191,40 @@ class AnswerField(QWidget):
         super().__init__()        
         
         self.__bg = bg
-        self.__set_fields(expected_word_list)
+        
+        layout = QHBoxLayout()
+        layout.setSpacing(2)
+        self.setLayout(layout)
 
-    def __set_fields(self, expected_word_list):
+        self.setExpectedWordList(expected_word_list)
+
+    def __clear_layout(self, layout):
+        
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+                else:
+                    self.__clear_layout(item.layout())
+
+    def setExpectedWordList(self, expected_word_list):
         """
         Every time when it is called, a new layout will be generated
         """
-        self.__expected_word_list=expected_word_list
 
-        self.layout=QHBoxLayout()
-        self.layout.setSpacing(1)
-        
+        self.__expected_word_list = expected_word_list
+    
+        # remove all widgets
+        self.__clear_layout(self.layout())
+          
         for i in expected_word_list:
-            self.layout.addWidget( self._get_single_field(i) )
-        self.layout.addStretch(10)
-        self.setLayout(self.layout)
+            self.layout().addWidget( self._get_single_field(i) )
+
+        self.layout().addStretch(10)
+        print("children: ", self.layout().count(),  self.__class__.__name__)
+        
 
     def _get_single_field(self, word):
         """
@@ -158,9 +249,10 @@ class AnswerField(QWidget):
 
     def enableText(self):
         """
-        Enable all fields to edit
+        Clears and Enables all fields to edit
         """
         for widget in self.getFieldIterator():
+            widget.clear()
             widget.setEnabled( True )
 
     def getBackgroundColor(self):
@@ -195,13 +287,19 @@ class AnswerField(QWidget):
         """
         Returns the SingleField widgets
         """
-        for i in range(self.layout.count()):
-
-            # self.layout.itemAt(i) -> QWidgetItem
-            widget = self.layout.itemAt(i).widget()
-            
+        #print("children: ", self.children())
+        #for i in range(self.layout.count()):
+        for widget in self.children():
             if isinstance(widget, SingleField):
                 yield widget
+
+#        for i in range(len(self.children())):
+#
+#           # self.layout.itemAt(i) -> QWidgetItem
+#          widget = self.layout().itemAt(i).widget()
+#            
+#            if isinstance(widget, SingleField):
+#                yield widget
 
 
 class ExpectedAnswerField(AnswerField):
@@ -234,10 +332,10 @@ class ExpectedAnswerField(AnswerField):
 
         # trough the widgets in the layout
         #for widget in self.getFieldIterator():
-        for i in range(self.layout.count()):
+        for i in range(self.layout().count()):
 
             # self.layout.itemAt(i) -> QWidgetItem
-            widget = self.layout.itemAt(i).widget()
+            widget = self.layout().itemAt(i).widget()
             if isinstance(widget, SingleField):
 
                     # go trough all characters in the widget
@@ -336,10 +434,7 @@ class SingleField(QTextEdit):
             cursor.setPosition(self.length)
             self.setTextCursor(cursor)
 
-        print(self.toPlainText())
-
-
-
+        #print(self.toPlainText())
 
     
 class __SingleField(QLineEdit):
@@ -428,7 +523,17 @@ class PicButton(QAbstractButton):
 
 def main():    
     app = QApplication(sys.argv)
-    ex = Example()
+
+    file_name = "base"
+    part_of_speech_filter = "noun"
+    extra_filter = "bibli-03"
+    base_language="hu"
+    learning_language="sv"
+    say_out=True
+    show_pattern=True
+    show_note=True
+    
+    ex = GuiPrala(file_name, base_language, learning_language, part_of_speech_filter=part_of_speech_filter, extra_filter=extra_filter, say_out=say_out, show_pattern=show_pattern, show_note=show_note)
     sys.exit(app.exec_())
     
     

@@ -1,5 +1,5 @@
 import sys
-from prala.accessories import _, Enum
+from prala.accessories import _, Enum, PicButton
 from prala.core import FilteredDictionary
 from prala.core import Record
 from prala.accessories import Property
@@ -10,20 +10,15 @@ from threading import Thread
 
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QFrame, 
-    QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QTextEdit )
+    QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QTextEdit)
 from PyQt5.QtGui import QPainter, QFont, QColor
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QPixmap, QIcon, QPalette
-from PyQt5.QtWidgets import QAbstractButton
 from pkg_resources import resource_string, resource_filename
 
 
 class GuiPrala(QWidget):
-
-    STATUS = Enum(
-        ACCEPT = 0,
-        NEXT = 1
-    )
+ 
     
     def __init__(self, file_name, base_language, learning_language, part_of_speech_filter="", extra_filter="", say_out=True, show_pattern=True, show_note=True):
         super().__init__()
@@ -55,14 +50,8 @@ class GuiPrala(QWidget):
 
         self.result_lamp=ResultWidget(failed_position_list=None)
 
-        ok_button_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button.png"))))        
-        ok_button_hover_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-hover.png"))))        
-        ok_button_pressed_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-pressed.png"))))        
-
-        #pixmap = pixmap.scaled(42, 42, Qt.KeepAspectRatio, Qt.FastTransformation)
-        self.ok_button = PicButton(ok_button_pixmap, ok_button_hover_pixmap, ok_button_pressed_pixmap)
-        #self.button_status = GuiPrala.STATUS.ACCEPT
-        self.ok_button.clicked.connect(self.on_click)
+        self.ok_button = self.getOKButton()
+        #self.ok_button.clicked.connect(self.on_click)
 
         stat_good_field=QLineEdit("1")
         stat_asked_field=QLineEdit("4")
@@ -112,9 +101,6 @@ class GuiPrala(QWidget):
         ## clear and enable answer fields
         #self.answer_field.enableText()
 
-        # button status = ACCEPT
-        self.button_status  = GuiPrala.STATUS.ACCEPT
-
         # show part of speech: record.part_of_speach
         
         good_answer = self.record.learning_words
@@ -133,37 +119,88 @@ class GuiPrala(QWidget):
             Thread(target = self.record.say_out_base, args = ()).start()
 
 
-    def on_click(self):
+#    def on_click(self):
+#        
+#        if self.button_status == GuiPrala.STATUS.ACCEPT:
+#        
+#            self.answer_field.disableText()
+#
+#            # shows the difference between the the answer and the good answer -> tuple
+#            # [0] -> False/True
+#            # [1] -> list of list of thedisable positions of the difference in the words
+#            result=self.record.check_answer(self.answer_field.getFieldsContentList())
+#
+#            if result[0]:
+#                self.result_lamp.set_result(True)
+#            else:
+#                self.result_lamp.set_result(False)
+#
+#            self.good_answer_field.showText(result[1], self.answer_field.getFieldsContentList())
+#
+#            self.button_status = GuiPrala.STATUS.NEXT
+#            
+#            # say out the right answer in thread          
+#            if self.say_out:
+#                Thread(target = self.record.say_out_learning, args = ()).start()
+#
+#        elif self.button_status == GuiPrala.STATUS.NEXT:
+#
+#            #self.answer_field.enableText()
+#
+#            #self.button_status  = GuiPrala.STATUS.ACCEPT
+#
+#            self.round()
+
+    def getOKButton( gui_object ):
+
+        class OKButton(PicButton):
+            STATUS = Enum(
+                ACCEPT = 0,
+                NEXT = 1
+            )
+
+            def __init__(self, gui_object):
+                self.gui_object = gui_object
+
+                ok_button_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button.png"))))        
+                ok_button_hover_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-hover.png"))))        
+                ok_button_pressed_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-pressed.png"))))   
+                super().__init__(ok_button_pixmap, ok_button_hover_pixmap, ok_button_pressed_pixmap)
+
+                self.clicked.connect(self.on_click)
+                self.status = OKButton.STATUS.ACCEPT
+
+            def on_click(self):
+                
+                if self.status == OKButton.STATUS.ACCEPT:
         
-        if self.button_status == GuiPrala.STATUS.ACCEPT:
-        
-            self.answer_field.disableText()
+                    gui_object.answer_field.disableText()
 
-            # shows the difference between the the answer and the good answer -> tuple
-            # [0] -> False/True
-            # [1] -> list of list of thedisable positions of the difference in the words
-            result=self.record.check_answer(self.answer_field.getFieldsContentList())
+                    # shows the difference between the the answer and the good answer -> tuple
+                    # [0] -> False/True
+                    # [1] -> list of list of thedisable positions of the difference in the words
+                    result=gui_object.record.check_answer(gui_object.answer_field.getFieldsContentList())
 
-            if result[0]:
-                self.result_lamp.set_result(True)
-            else:
-                self.result_lamp.set_result(False)
+                    if result[0]:
+                        gui_object.result_lamp.set_result(True)
+                    else:
+                        gui_object.result_lamp.set_result(False)
 
-            self.good_answer_field.showText(result[1], self.answer_field.getFieldsContentList())
+                    gui_object.good_answer_field.showText(result[1], gui_object.answer_field.getFieldsContentList())
 
-            self.button_status = GuiPrala.STATUS.NEXT
+                    self.status = OKButton.STATUS.NEXT
             
-            # say out the right answer in thread          
-            if self.say_out:
-                Thread(target = self.record.say_out_learning, args = ()).start()
+                    # say out the right answer in thread          
+                    if gui_object.say_out:
+                        Thread(target = gui_object.record.say_out_learning, args = ()).start()
 
-        elif self.button_status == GuiPrala.STATUS.NEXT:
+                elif self.status == OKButton.STATUS.NEXT:
 
-            #self.answer_field.enableText()
+                    self.status  = OKButton.STATUS.ACCEPT
+                    gui_object.round()
 
-            #self.button_status  = GuiPrala.STATUS.ACCEPT
+        return OKButton(gui_object)
 
-            self.round()
 
 class QuestionField(QLabel):
     FONT_SIZE = 13
@@ -490,37 +527,6 @@ class ResultWidget(QLabel):
         return QSize(type(self).WIDTH, type(self).HEIGHT)
 
 
-class PicButton(QAbstractButton):
-    """
-    Button
-    """
-    def __init__(self, pixmap, pixmap_hover, pixmap_pressed, parent=None):
-        super(PicButton, self).__init__(parent)
-        self.pixmap = pixmap
-        self.pixmap_hover = pixmap_hover
-        self.pixmap_pressed = pixmap_pressed
-
-        self.pressed.connect(self.update)
-        self.released.connect(self.update)
-
-    def paintEvent(self, event):
-        pix = self.pixmap_hover if self.underMouse() else self.pixmap
-        if self.isDown():
-            pix = self.pixmap_pressed
-
-        painter = QPainter(self)
-        painter.drawPixmap(event.rect(), pix)
-
-    def enterEvent(self, event):
-        self.update()
-
-    def leaveEvent(self, event):
-        self.update()
-
-    def sizeHint(self):
-        
-        return QSize(100,38)
-
 def main():    
     app = QApplication(sys.argv)
 
@@ -536,4 +542,5 @@ def main():
     ex = GuiPrala(file_name, base_language, learning_language, part_of_speech_filter=part_of_speech_filter, extra_filter=extra_filter, say_out=say_out, show_pattern=show_pattern, show_note=show_note)
     sys.exit(app.exec_())
     
-    
+   
+ 

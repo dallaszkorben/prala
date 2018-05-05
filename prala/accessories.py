@@ -2,6 +2,10 @@ import configparser
 import os
 import gettext
 
+from PyQt5.QtWidgets import QAbstractButton
+from PyQt5.QtGui import QPainter
+from PyQt5.QtCore import QSize
+
 INI_FILE_NAME="config.ini"
 
 DEFAULT_LANGUAGE="en"
@@ -169,4 +173,37 @@ def xzip(a, b, string_filler=""):
 #file=os.path.join(os.getcwd(),'config.inii')
 #p=Property(file)
 #p.update("language4", "newe#from iso3166 import countries
+
+
+class PicButton(QAbstractButton):
+    """
+    Button
+    """
+    def __init__(self, pixmap, pixmap_hover, pixmap_pressed, parent=None):
+        super(PicButton, self).__init__(parent)
+        self.pixmap = pixmap
+        self.pixmap_hover = pixmap_hover
+        self.pixmap_pressed = pixmap_pressed
+
+        self.pressed.connect(self.update)
+        self.released.connect(self.update)
+
+    def paintEvent(self, event):
+        pix = self.pixmap_hover if self.underMouse() else self.pixmap
+        if self.isDown():
+            pix = self.pixmap_pressed
+
+        painter = QPainter(self)
+        painter.drawPixmap(event.rect(), pix)
+
+    def enterEvent(self, event):
+        self.update()
+
+    def leaveEvent(self, event):
+        self.update()
+
+    def sizeHint(self):
+        
+        return QSize(100,38)
+
 

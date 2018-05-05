@@ -51,16 +51,9 @@ class GuiPrala(QWidget):
         self.result_lamp=ResultWidget(failed_position_list=None)
 
         self.ok_button = self.getOKButton()
-        #self.ok_button.clicked.connect(self.on_click)
 
-        stat_good_field=QLineEdit("1")
-        stat_asked_field=QLineEdit("4")
-        stat_remains_field=QLineEdit("6")
-        stat_percent_field=QLineEdit("40")
-        stat_percent_sign_label=QLabel("%")
-
-        stat_history=QLabel("1 0 0 1 1")
-        stat_points=QLineEdit("8")
+        #self.stat_field=self.StatField(bg=self.palette().color(QPalette.Background))
+        self.stat_field=StatField(bg=Qt.white)
 
         # --------------------
         # general grid setting
@@ -78,14 +71,12 @@ class GuiPrala(QWidget):
         grid.addWidget( question_title, 0, 0, 1, fields_rows )
         grid.addWidget( self.question_field, 1, 0, 1, fields_rows )
 
-        #grid.addWidget( self.result_lamp, 2, fields_rows-1, 1, 1, Qt.AlignRight )
-
         grid.addWidget( answer_title, 4, 0, 1, fields_rows)
         grid.addWidget( self.answer_field, 5, 0, 1, fields_rows-1)
         grid.addWidget( self.good_answer_field, 6, 0, 1, fields_rows )
         grid.addWidget( self.result_lamp, 6, fields_rows-1, 1, 1, Qt.AlignCenter )
-        #grid.addWidget( stat_, 7, 0, 1, fields_rows ) 
-        grid.addWidget( stat_history, 8, 0, 1, fields_rows )
+ 
+        grid.addWidget( self.stat_field, 8, 0, 1, fields_rows )
         
         grid.addWidget( self.ok_button, 5, fields_rows-1, 1, 1 )
 
@@ -94,12 +85,23 @@ class GuiPrala(QWidget):
         self.setWindowTitle(_("TITLE_WINDOW"))    
         self.show()
 
+    def showStat(self, ):
+        overall=self.myFilteredDictionary.get_recent_stat_list()                    
+                    
+        good = str(overall[1])
+        all = str(overall[0])
+        remains = str(overall[2]) if overall[2] > 0 else ""
+        success = str(int(100 * overall[1] / overall[0])) + "%"
+        recent_stat = self.record.get_recent_stat()
+        sequence =  ", ".join( [str(i) for i in recent_stat])
+        points = str(self.myFilteredDictionary.get_points(recent_stat))
+
+        self.stat_field.setValues(good=good, all=all, remains=remains, success=success, sequence=sequence, points=points)
+                    
+
     def round( self, wrong_record=None ):
         
         self.record = self.myFilteredDictionary.get_next_random_record(wrong_record)
-
-        ## clear and enable answer fields
-        #self.answer_field.enableText()
 
         # show part of speech: record.part_of_speach
         
@@ -117,39 +119,6 @@ class GuiPrala(QWidget):
         # say out the question in a thread
         if self.say_out:
             Thread(target = self.record.say_out_base, args = ()).start()
-
-
-#    def on_click(self):
-#        
-#        if self.button_status == GuiPrala.STATUS.ACCEPT:
-#        
-#            self.answer_field.disableText()
-#
-#            # shows the difference between the the answer and the good answer -> tuple
-#            # [0] -> False/True
-#            # [1] -> list of list of thedisable positions of the difference in the words
-#            result=self.record.check_answer(self.answer_field.getFieldsContentList())
-#
-#            if result[0]:
-#                self.result_lamp.set_result(True)
-#            else:
-#                self.result_lamp.set_result(False)
-#
-#            self.good_answer_field.showText(result[1], self.answer_field.getFieldsContentList())
-#
-#            self.button_status = GuiPrala.STATUS.NEXT
-#            
-#            # say out the right answer in thread          
-#            if self.say_out:
-#                Thread(target = self.record.say_out_learning, args = ()).start()
-#
-#        elif self.button_status == GuiPrala.STATUS.NEXT:
-#
-#            #self.answer_field.enableText()
-#
-#            #self.button_status  = GuiPrala.STATUS.ACCEPT
-#
-#            self.round()
 
     def getOKButton( gui_object ):
 
@@ -181,12 +150,20 @@ class GuiPrala(QWidget):
                     # [1] -> list of list of thedisable positions of the difference in the words
                     result=gui_object.record.check_answer(gui_object.answer_field.getFieldsContentList())
 
+                    # write back the stat
+                    gui_object.myFilteredDictionary.add_result_to_stat(gui_object.record.word_id,result[0])
+
+                    # show the result in green/red lamp
                     if result[0]:
                         gui_object.result_lamp.set_result(True)
                     else:
                         gui_object.result_lamp.set_result(False)
 
+                    # shows the expected answer with differences
                     gui_object.good_answer_field.showText(result[1], gui_object.answer_field.getFieldsContentList())
+
+                    # shows statistics
+                    gui_object.showStat()
 
                     self.status = OKButton.STATUS.NEXT
             
@@ -198,6 +175,9 @@ class GuiPrala(QWidget):
 
                     self.status  = OKButton.STATUS.ACCEPT
                     gui_object.round()
+
+                    # shows statistics
+                    gui_object.showStat()
 
         return OKButton(gui_object)
 
@@ -342,6 +322,7 @@ class AnswerField(QWidget):
 class ExpectedAnswerField(AnswerField):
     FONT_SIZE = 15
     FONT_COLOR = Qt.black
+
     def __init__(self, word_list, bg):
         super().__init__(word_list, bg)
         
@@ -384,6 +365,59 @@ class ExpectedAnswerField(AnswerField):
                         else:
                             widget.appendText(word_failed_position_pair_list[i][0][pos], color=Qt.green)
 
+
+class StatField(QWidget):
+    FONT_SIZE = 10
+    FONT_COLOR = Qt.gray
+    FONT_TYPE = "Arial"
+
+    def __init__(self, bg=Qt.gray):
+        
+        super().__init__()        
+        
+        self.__bg = bg
+        
+        layout = QHBoxLayout()
+        layout.setSpacing(3)
+        self.setLayout(layout)
+
+
+        portion_widget = SingleField(10, font=StatField.FONT_TYPE, size=StatField.FONT_SIZE, color=StatField.FONT_COLOR, bg=self.__bg)
+        portion_widget.setEnabled(False)
+        self.layout().addWidget(portion_widget)
+
+        success_widget = SingleField(4, font=StatField.FONT_TYPE, size=StatField.FONT_SIZE, color=StatField.FONT_COLOR, bg=self.__bg)
+        success_widget.setEnabled(False)
+        self.layout().addWidget(success_widget)
+
+        points_widget = SingleField(4, font=StatField.FONT_TYPE, size=StatField.FONT_SIZE, color=StatField.FONT_COLOR, bg=self.__bg)
+        points_widget.setEnabled(False)
+        self.layout().addWidget(points_widget)
+
+        sequence_widget = SingleField(30, font=StatField.FONT_TYPE, size=StatField.FONT_SIZE, color=StatField.FONT_COLOR, bg=self.__bg)
+        sequence_widget.setEnabled(False)
+        self.layout().addWidget(sequence_widget)
+
+        self.layout().addStretch(10)
+ 
+    def setValues(self, good="", all="", remains="", success="", sequence="", points="" ):
+        portion = good + "/" + all if len(good.strip()) > 0 and len(all.strip()) > 0 else ""
+        portion += "/" + remains if len(remains.strip()) > 0 else ""
+        
+        widget = self.layout().itemAt(0).widget()
+        widget.setPlainText(portion)
+
+        widget = self.layout().itemAt(1).widget()
+        widget.setPlainText(success)        
+
+        widget = self.layout().itemAt(2).widget()
+        widget.setText(points)
+
+        widget = self.layout().itemAt(3).widget()
+        widget.setPlainText(sequence)  
+        
+
+  
 class SingleField(QTextEdit):
 
     BASIC_FONT = "Courier New"

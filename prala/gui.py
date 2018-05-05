@@ -62,12 +62,12 @@ class CentralWidget(QWidget):
         # Fields
         # --------------------
         #
-        question_title=QLabel(_("TITLE_QUESTION") + ":")
+        #question_title=QLabel(_("TITLE_QUESTION") + ":")
         self.question_field=QuestionField("")
  
         good_answer=[""]
 
-        answer_title=QLabel(_("TITLE_ANSWER") + ":") 
+        #answer_title=QLabel(_("TITLE_ANSWER") + ":") 
         self.answer_field=AnswerField(good_answer, bg=self.palette().color(QPalette.Background))
 
         self.good_answer_field=ExpectedAnswerField(good_answer, bg=self.palette().color(QPalette.Background))
@@ -90,10 +90,10 @@ class CentralWidget(QWidget):
 
         # 0
         fields_columns=4
-        grid.addWidget( question_title, 0, 0, 1, fields_columns )
+        #grid.addWidget( question_title, 0, 0, 1, fields_columns )
         grid.addWidget( self.question_field, 1, 0, 1, fields_columns )
 
-        grid.addWidget( answer_title, 4, 0, 1, fields_columns)
+        #grid.addWidget( answer_title, 4, 0, 1, fields_columns)
         grid.addWidget( self.answer_field, 5, 0, 1, fields_columns-1)
         grid.addWidget( self.good_answer_field, 6, 0, 1, fields_columns-1 )
 

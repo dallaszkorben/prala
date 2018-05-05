@@ -2,9 +2,10 @@ import configparser
 import os
 import gettext
 
-from PyQt5.QtWidgets import QAbstractButton
+from PyQt5.QtWidgets import QAbstractButton, QSizePolicy
 from PyQt5.QtGui import QPainter
 from PyQt5.QtCore import QSize
+ 
 
 INI_FILE_NAME="config.ini"
 
@@ -176,20 +177,34 @@ def xzip(a, b, string_filler=""):
 
 
 class PicButton(QAbstractButton):
+    WIDTH = 100
+    HEIGHT = 30
+    
     """
     Button
     """
-    def __init__(self, pixmap, pixmap_hover, pixmap_pressed, parent=None):
-        super(PicButton, self).__init__(parent)
+    def __init__(self, pixmap, pixmap_focus, pixmap_hover, pixmap_pressed, parent=None):
+        super().__init__(parent)
         self.pixmap = pixmap
+        self.pixmap_focus = pixmap_focus
         self.pixmap_hover = pixmap_hover
         self.pixmap_pressed = pixmap_pressed
 
         self.pressed.connect(self.update)
         self.released.connect(self.update)
+        
+        #self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        #self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setMinimumWidth( PicButton.WIDTH )
+        self.setMaximumWidth( PicButton.WIDTH )
+
+        self.setMinimumHeight( PicButton.HEIGHT )
+        self.setMaximumHeight( PicButton.HEIGHT )
 
     def paintEvent(self, event):
-        pix = self.pixmap_hover if self.underMouse() else self.pixmap
+        #pix = self.pixmap_hover if self.underMouse() else self.pixmap
+        #pix = self.pixmap_hover if self.hasFocus() else self.pixmap
+        pix = self.pixmap_hover if self.underMouse() else self.pixmap_focus if self.hasFocus() else self.pixmap
         if self.isDown():
             pix = self.pixmap_pressed
 
@@ -202,8 +217,8 @@ class PicButton(QAbstractButton):
     def leaveEvent(self, event):
         self.update()
 
-    def sizeHint(self):
-        
-        return QSize(100,38)
+    #def sizeHint(self):        
+    #    return QSize(100,38)
+    
 
 

@@ -10,9 +10,10 @@ from threading import Thread
 
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QFrame, QMainWindow,
-    QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QTextEdit)
+    QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QTextEdit,
+    QDesktopWidget, QSizePolicy)
 from PyQt5.QtGui import QPainter, QFont, QColor
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, QEvent
 from PyQt5.QtGui import QPixmap, QIcon, QPalette
 from pkg_resources import resource_string, resource_filename
 
@@ -26,9 +27,9 @@ class GuiPrala(QMainWindow):
         central_widget = CentralWidget( self, file_name, base_language, learning_language, part_of_speech_filter, extra_filter, say_out, show_pattern, show_note)
         self.setCentralWidget( central_widget )
 
-        self.resize(500, 200)
+        self.resize(500, 150)
         self.statusBar().showMessage("")
-        #self.center()
+        self.center()
         self.setWindowTitle(GuiPrala.TITLE)
         self.show()
 
@@ -75,34 +76,29 @@ class CentralWidget(QWidget):
 
         self.ok_button = self.getOKButton()
 
-        #self.stat_field=self.StatField(bg=self.palette().color(QPalette.Background))
-        #self.stat_field=StatField(bg=Qt.white)
-
         # --------------------
         # general grid setting
         # --------------------
         #
         grid=QGridLayout()
         self.setLayout(grid)
-        grid.setSpacing(1)      #space between the fields
+        grid.setSpacing(1)      # space between the fields
 
         # --------------------
         # Fields location
         # --------------------
 
-        fields_rows=4
-        grid.addWidget( question_title, 0, 0, 1, fields_rows )
-        grid.addWidget( self.question_field, 1, 0, 1, fields_rows )
+        # 0
+        fields_columns=4
+        grid.addWidget( question_title, 0, 0, 1, fields_columns )
+        grid.addWidget( self.question_field, 1, 0, 1, fields_columns )
 
-        grid.addWidget( answer_title, 4, 0, 1, fields_rows)
-        grid.addWidget( self.answer_field, 5, 0, 1, fields_rows-1)
-        grid.addWidget( self.good_answer_field, 6, 0, 1, fields_rows )
-        grid.addWidget( self.result_lamp, 6, fields_rows-1, 1, 1, Qt.AlignCenter )
- 
-        #grid.addWidget( self.stat_field, 8, 0, 1, fields_rows )
-        
-        grid.addWidget( self.ok_button, 5, fields_rows-1, 1, 1 )
+        grid.addWidget( answer_title, 4, 0, 1, fields_columns)
+        grid.addWidget( self.answer_field, 5, 0, 1, fields_columns-1)
+        grid.addWidget( self.good_answer_field, 6, 0, 1, fields_columns-1 )
 
+        grid.addWidget( self.ok_button, 5, fields_columns-1, 1, 1, Qt.AlignCenter )
+        grid.addWidget( self.result_lamp, 6, fields_columns-1, 1, 1, Qt.AlignCenter )
 
         self.setGeometry(300, 300, 450, 150)
         self.setWindowTitle(_("TITLE_WINDOW"))    
@@ -159,9 +155,10 @@ class CentralWidget(QWidget):
                 self.gui_object = gui_object
 
                 ok_button_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button.png"))))        
-                ok_button_hover_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-hover.png"))))        
+                ok_button_hover_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-hover.png"))))
+                ok_button_focus_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-focus.png"))))        
                 ok_button_pressed_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-pressed.png"))))   
-                super().__init__(ok_button_pixmap, ok_button_hover_pixmap, ok_button_pressed_pixmap)
+                super().__init__(ok_button_pixmap, ok_button_focus_pixmap, ok_button_hover_pixmap, ok_button_pressed_pixmap)
 
                 self.clicked.connect(self.on_click)
                 self.status = OKButton.STATUS.ACCEPT
@@ -242,6 +239,8 @@ class AnswerField(QWidget):
 
         self.setExpectedWordList(expected_word_list)
 
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
     def __clear_layout(self, layout):
         
         if layout is not None:
@@ -267,7 +266,7 @@ class AnswerField(QWidget):
             self.layout().addWidget( self._get_single_field(i) )
 
         self.layout().addStretch(10)
-        print("children: ", self.layout().count(),  self.__class__.__name__)
+        #print("children: ", self.layout().count(),  self.__class__.__name__)
         
 
     def _get_single_field(self, word):
@@ -492,6 +491,7 @@ class SingleField(QTextEdit):
 
         # for control the number of the characters in the field
         self.textChanged.connect(self.changed_text)
+        
 
     def __set_basic_font(self):
        

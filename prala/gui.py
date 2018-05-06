@@ -143,7 +143,7 @@ class CentralWidget(QWidget):
         """
         
         # hides the result lamp
-        gui_object.result_lamp.set_result(None)
+        self.result_lamp.set_result(None)
 
         self.record = self.myFilteredDictionary.get_next_random_record(wrong_record)
 
@@ -193,19 +193,19 @@ class CentralWidget(QWidget):
                     # shows the difference between the the answer and the good answer -> tuple
                     # [0] -> False/True
                     # [1] -> list of list of thedisable positions of the difference in the words
-                    result=gui_object.record.check_answer(gui_object.answer_field.getFieldsContentList())
+                    self.result=gui_object.record.check_answer(gui_object.answer_field.getFieldsContentList())
 
                     # write back the stat
-                    gui_object.myFilteredDictionary.add_result_to_stat(gui_object.record.word_id,result[0])
+                    gui_object.myFilteredDictionary.add_result_to_stat(gui_object.record.word_id,self.result[0])
 
                     # show the result in green/red lamp
-                    if result[0]:
+                    if self.result[0]:
                         gui_object.result_lamp.set_result(True)
                     else:
                         gui_object.result_lamp.set_result(False)
 
                     # shows the expected answer with differences
-                    gui_object.good_answer_field.showText(result[1], gui_object.answer_field.getFieldsContentList())
+                    gui_object.good_answer_field.showText(self.result[1], gui_object.answer_field.getFieldsContentList())
 
                     # shows statistics
                     gui_object.showStat()
@@ -224,7 +224,7 @@ class CentralWidget(QWidget):
                     gui_object.showStat()
 
                     # starts a new round
-                    gui_object.round( None if result[0] else record )
+                    gui_object.round( None if self.result[0] else gui_object.record )
 
   
 

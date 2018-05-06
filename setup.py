@@ -1,8 +1,11 @@
 from setuptools import setup, find_packages
+from prala.accessories import getSetupIni
+
+sp=getSetupIni()
 
 setup(
-      name='prala',
-      version='0.0.30',
+      name=sp['name'],
+      version=sp['version'],
       description='Practice Language',
       long_description=open('README.md').read(),
       url='http://github.com/dallaszkorben/prala',

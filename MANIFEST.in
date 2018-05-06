@@ -1,4 +1,3 @@
 include prala/templates/*.dict
 include prala/images/*.png
 include prala/locales/*/LC_MESSAGES/*.mo
-include *.dict

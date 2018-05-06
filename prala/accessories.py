@@ -99,7 +99,7 @@ class Property(object):
         
     def __init__(self):
         #self.file=file
-        self.file=os.path.join(os.getcwd(), INI_FILE_NAME)
+        self.file = os.path.join(os.getcwd(), INI_FILE_NAME)
         self.parser = configparser.RawConfigParser()
 
     def __write_file(self):
@@ -228,7 +228,7 @@ class PicButton(QPushButton):
     #def sizeHint(self):        
     #    return QSize(100,38)
 
-def getIni():
+def getConfigIni():
     """
     Collects all information which needs to run the application.
     Must:
@@ -266,17 +266,6 @@ def getIni():
     part_of_speech_filter = options.part_of_speech_filter
     extra_filter = options.extra_filter
 
-    ##
-    ## config.ini
-    ##
-    #from prala.accessories import DEFAULT_LANGUAGE
-    #from prala.accessories import DEFAULT_BASE_LANGUAGE
-    #from prala.accessories import DEFAULT_LEARNING_LANGUAGE
-    #from prala.accessories import DEFAULT_SAY_OUT
-    #from prala.accessories import DEFAULT_SHOW_PATTERN
-    #from prala.accessories import DEFAULT_SHOW_NOTE
-    
-    #file=os.path.join(os.getcwd(), INI_FILE_NAME)
     property=Property.get_instance()
     language=property.get('language', 'language', DEFAULT_LANGUAGE)    
     base_language=to_name(property.get('languages', 'base_language', DEFAULT_BASE_LANGUAGE)).lower()
@@ -296,3 +285,26 @@ def getIni():
         ('show_note', show_note)
     ])
 
+
+def getSetupIni():
+    
+    file = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'ini', 'setup.ini')
+    parser = configparser.RawConfigParser()
+    parser.read( file )
+
+    version = "0.0.0"
+    name = "prala"
+    title = 'Prala'
+
+    try:
+        version = parser.get("DEFAULT", 'version')
+        name = parser.get("DEFAULT", 'name')
+        title = parser.get("DEFAULT", 'title')
+    except (configparser.NoSectionError, configparser.NoOptionError):
+        pass
+
+    return dict([ 
+        ('name', name), 
+        ('title', title), 
+        ('version', version)
+    ])

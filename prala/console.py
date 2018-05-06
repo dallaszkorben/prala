@@ -7,7 +7,7 @@ from optparse import OptionParser
 
 from prala.core import FilteredDictionary
 from prala.core import Record
-from prala.accessories import Property, getIni
+from prala.accessories import Property, getConfigIni
 from prala.exceptions import EmptyDictionaryError
 from prala.exceptions import NoDictionaryError
 
@@ -219,7 +219,7 @@ class ConsolePrala(object):
 
 def main():
 
-    par = getIni()
+    par = getConfigIni()
  
     # the reason of using it "with" is to get back the default coursor color at the end
     try:

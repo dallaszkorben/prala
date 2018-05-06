@@ -1,5 +1,5 @@
 import sys
-from prala.accessories import _, Enum, PicButton, getIni
+from prala.accessories import _, Enum, PicButton, getConfigIni, getSetupIni
 from prala.core import FilteredDictionary
 from prala.core import Record
 from prala.accessories import Property
@@ -18,7 +18,6 @@ from PyQt5.QtGui import QPixmap, QIcon, QPalette
 from pkg_resources import resource_string, resource_filename
 
 class GuiPrala(QMainWindow):
-    TITLE = "Prala"
 
     def __init__(self, file_name, base_language, learning_language, part_of_speech_filter="", extra_filter="", say_out=True, show_pattern=True, show_note=True):
 
@@ -30,7 +29,8 @@ class GuiPrala(QMainWindow):
         self.resize(500, 150)
         self.statusBar().showMessage("")
         self.center()
-        self.setWindowTitle(GuiPrala.TITLE)
+        setup = getSetupIni()
+        self.setWindowTitle( setup['title'] + " - " + setup['version'])
         self.show()
 
     def center(self):
@@ -553,7 +553,7 @@ class ResultWidget(QLabel):
 def main():    
     app = QApplication(sys.argv)
 
-    par = getIni()
+    par = getConfigIni()
  
     try:
         ex = GuiPrala(

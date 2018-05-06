@@ -2,7 +2,7 @@ import configparser
 import os
 import gettext
 
-from PyQt5.QtWidgets import QAbstractButton, QSizePolicy
+from PyQt5.QtWidgets import QAbstractButton, QSizePolicy, QPushButton
 from PyQt5.QtGui import QPainter
 from PyQt5.QtCore import QSize
  
@@ -176,7 +176,7 @@ def xzip(a, b, string_filler=""):
 #p.update("language4", "newe#from iso3166 import countries
 
 
-class PicButton(QAbstractButton):
+class PicButton(QPushButton):
     WIDTH = 100
     HEIGHT = 30
     
@@ -192,7 +192,10 @@ class PicButton(QAbstractButton):
 
         self.pressed.connect(self.update)
         self.released.connect(self.update)
-        
+    
+        self.setAutoDefault(False)
+        self.setDefault(True)        
+
         #self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         #self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setMinimumWidth( PicButton.WIDTH )
@@ -207,6 +210,7 @@ class PicButton(QAbstractButton):
         pix = self.pixmap_hover if self.underMouse() else self.pixmap_focus if self.hasFocus() else self.pixmap
         if self.isDown():
             pix = self.pixmap_pressed
+
 
         painter = QPainter(self)
         painter.drawPixmap(event.rect(), pix)

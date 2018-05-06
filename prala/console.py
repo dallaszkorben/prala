@@ -7,7 +7,7 @@ from optparse import OptionParser
 
 from prala.core import FilteredDictionary
 from prala.core import Record
-from prala.accessories import Property
+from prala.accessories import Property, getIni
 from prala.exceptions import EmptyDictionaryError
 from prala.exceptions import NoDictionaryError
 
@@ -51,6 +51,16 @@ class ConsolePrala(object):
         self.show_note=show_note
 
     def round(self, wrong_record=None):
+        """
+        It is a round of asking question
+
+            Input
+                wrong_record
+                    - It is unrelevant until all words was answerd
+                    - If it is EMPTY then the chance depends on the points
+                    - If it is NOT EMPTY the the same question will be asked until it answered
+
+        """
 
         self.clear_console()
 
@@ -209,41 +219,22 @@ class ConsolePrala(object):
 
 def main():
 
-    parser=OptionParser("usage %prog dict_file_name [-p part_of_speech_filter] [-f extra_filter]")
-    parser.add_option("--pos", "-p", dest="part_of_speech_filter", default="", type="string", help="specify part of speech")
-    parser.add_option("--filter", "-f", dest="extra_filter", default="", type="string", help="specify extra filter")
-    (options, args) = parser.parse_args()
-
-    if len(args) != 1:   
-        parser.error("Incorrect number of arguments")
-        exit()
-
-    file_name = args[0]
-    part_of_speech_filter = options.part_of_speech_filter
-    extra_filter = options.extra_filter
-
-    #
-    # config.ini
-    #
-    from prala.accessories import DEFAULT_LANGUAGE
-    from prala.accessories import DEFAULT_BASE_LANGUAGE
-    from prala.accessories import DEFAULT_LEARNING_LANGUAGE
-    from prala.accessories import DEFAULT_SAY_OUT
-    from prala.accessories import DEFAULT_SHOW_PATTERN
-    from prala.accessories import DEFAULT_SHOW_NOTE
-    
-    #file=os.path.join(os.getcwd(), INI_FILE_NAME)
-    property=Property.get_instance()
-    language=property.get('language', 'language', DEFAULT_LANGUAGE)    
-    base_language=to_name(property.get('languages', 'base_language', DEFAULT_BASE_LANGUAGE)).lower()
-    learning_language=to_name(property.get('languages', 'learning_language', DEFAULT_LEARNING_LANGUAGE)).lower()
-    say_out=property.get_boolean('general', 'say_out', DEFAULT_SAY_OUT)    
-    show_pattern=property.get_boolean('general', 'show_pattern', DEFAULT_SHOW_PATTERN)    
-    show_note=property.get_boolean('general', 'show_note', DEFAULT_SHOW_NOTE)
-
+    par = getIni()
+ 
     # the reason of using it "with" is to get back the default coursor color at the end
     try:
-        with ConsolePrala(file_name, base_language, learning_language, part_of_speech_filter=part_of_speech_filter, extra_filter=extra_filter, say_out=say_out, show_pattern=show_pattern, show_note=show_note) as cp:
+        with ConsolePrala(
+            par['file_name'], 
+            par['base_language'], 
+            par['learning_language'], 
+            part_of_speech_filter=par['part_of_speech_filter'], 
+            extra_filter=par['extra_filter'], 
+            say_out=par['say_out'], 
+            show_pattern=par['show_pattern'], 
+            show_note=par['show_note']
+
+        ) as cp:
+
             wrong_record=None
             while True:
                 wrong_record=cp.round(wrong_record)

@@ -2,6 +2,10 @@ import configparser
 import os
 import gettext
 
+from pkg_resources import resource_string
+from iso639 import to_name
+from optparse import OptionParser
+
 from PyQt5.QtWidgets import QAbstractButton, QSizePolicy, QPushButton
 from PyQt5.QtGui import QPainter
 from PyQt5.QtCore import QSize
@@ -223,6 +227,72 @@ class PicButton(QPushButton):
 
     #def sizeHint(self):        
     #    return QSize(100,38)
-    
 
+def getIni():
+    """
+    Collects all information which needs to run the application.
+    Must:
+        1 and only one parameter which is the name of the dictionary what you want to use
+    Options:
+        using the --pos switch, you can specify the part of the speech (it is possible to catogorize all words in one POS)
+        using the --filter switch, you can filter the asked list of the dict specifying this filter (it is possible to add extra category for all words)
+
+    Return: It returns a dict of all necessary parameters to run the application
+        file_name               (string) 
+        base_language           (string) 
+        learning_language       (string) 
+        part_of_speech_filter   (string)
+        extra_filter            (string)
+        say_out                 (boolean)
+        show_pattern            (boolean) 
+        show_note               (boolean)
+    """
+
+    # initialize OptionParser
+    parser=OptionParser("%prog dict_file_name [-p part_of_speech_filter] [-f extra_filter]")
+    parser.add_option("--pos", "-p", dest="part_of_speech_filter", default="", type="string", help="specify part of speech")
+    parser.add_option("--filter", "-f", dest="extra_filter", default="", type="string", help="specify extra filter")
+    (options, args) = parser.parse_args()
+
+    # if the number of parameters different than 1 => dictionary's name
+    if len(args) != 1:   
+        parser.error("Incorrect number of arguments")
+        exit()
+
+    # dictionary's name
+    file_name = args[0]
+
+    # optins
+    part_of_speech_filter = options.part_of_speech_filter
+    extra_filter = options.extra_filter
+
+    ##
+    ## config.ini
+    ##
+    #from prala.accessories import DEFAULT_LANGUAGE
+    #from prala.accessories import DEFAULT_BASE_LANGUAGE
+    #from prala.accessories import DEFAULT_LEARNING_LANGUAGE
+    #from prala.accessories import DEFAULT_SAY_OUT
+    #from prala.accessories import DEFAULT_SHOW_PATTERN
+    #from prala.accessories import DEFAULT_SHOW_NOTE
+    
+    #file=os.path.join(os.getcwd(), INI_FILE_NAME)
+    property=Property.get_instance()
+    language=property.get('language', 'language', DEFAULT_LANGUAGE)    
+    base_language=to_name(property.get('languages', 'base_language', DEFAULT_BASE_LANGUAGE)).lower()
+    learning_language=to_name(property.get('languages', 'learning_language', DEFAULT_LEARNING_LANGUAGE)).lower()
+    say_out=property.get_boolean('general', 'say_out', DEFAULT_SAY_OUT)    
+    show_pattern=property.get_boolean('general', 'show_pattern', DEFAULT_SHOW_PATTERN)    
+    show_note=property.get_boolean('general', 'show_note', DEFAULT_SHOW_NOTE)
+
+    return dict([ 
+        ('file_name', file_name), 
+        ('base_language', base_language), 
+        ('learning_language', learning_language), 
+        ('part_of_speech_filter', part_of_speech_filter),
+        ('extra_filter', extra_filter), 
+        ('say_out', say_out), 
+        ('show_pattern', show_pattern), 
+        ('show_note', show_note)
+    ])
 

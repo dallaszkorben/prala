@@ -1,5 +1,5 @@
 import sys
-from prala.accessories import _, Enum, PicButton
+from prala.accessories import _, Enum, PicButton, getIni
 from prala.core import FilteredDictionary
 from prala.core import Record
 from prala.accessories import Property
@@ -62,12 +62,10 @@ class CentralWidget(QWidget):
         # Fields
         # --------------------
         #
-        #question_title=QLabel(_("TITLE_QUESTION") + ":")
         self.question_field=QuestionField("")
  
         good_answer=[""]
 
-        #answer_title=QLabel(_("TITLE_ANSWER") + ":") 
         self.answer_field=AnswerField(good_answer, bg=self.palette().color(QPalette.Background))
 
         self.good_answer_field=ExpectedAnswerField(good_answer, bg=self.palette().color(QPalette.Background))
@@ -88,16 +86,21 @@ class CentralWidget(QWidget):
         # Fields location
         # --------------------
 
-        # 0
         fields_columns=4
-        #grid.addWidget( question_title, 0, 0, 1, fields_columns )
+
+        # QUESTION field
         grid.addWidget( self.question_field, 1, 0, 1, fields_columns )
 
-        #grid.addWidget( answer_title, 4, 0, 1, fields_columns)
+        # ANSWER field
         grid.addWidget( self.answer_field, 5, 0, 1, fields_columns-1)
+
+        # EXPECTED ANSWER field
         grid.addWidget( self.good_answer_field, 6, 0, 1, fields_columns-1 )
 
+        # OK buttn
         grid.addWidget( self.ok_button, 5, fields_columns-1, 1, 1, Qt.AlignCenter )
+
+        # RESULT lamp
         grid.addWidget( self.result_lamp, 6, fields_columns-1, 1, 1, Qt.AlignCenter )
 
         self.setGeometry(300, 300, 450, 150)
@@ -119,11 +122,29 @@ class CentralWidget(QWidget):
         message = good + "/" + all + ("/" + remains if len(remains.strip()) > 0 else "") + " | " + success + " | " + points + " | " + sequence  
         self.main_gui.statusBar().showMessage( message )
         
-        #self.stat_field.setValues(good=good, all=all, remains=remains, success=success, sequence=sequence, points=points)
-                    
-
     def round( self, wrong_record=None ):
+        """
+            Frame of asking word.
+            The other part of hte round is in the OKButton's on_click() method
+
+            -calculates the the new word to ask
+            -fill up the QUESTION field
+            -fill up the ANSWER field
+            -fill up the EXPECTED ANSWER field
+            -say out the question
+            -waiting for the user response
+
+            Input
+                wrong_record
+                    - It is unrelevant until all words was answerd
+                    - If it is EMPTY then the chance depends on the points
+                    - If it is NOT EMPTY the the same question will be asked until it answered
+            
+        """
         
+        # hides the result lamp
+        gui_object.result_lamp.set_result(None)
+
         self.record = self.myFilteredDictionary.get_next_random_record(wrong_record)
 
         # show part of speech: record.part_of_speach
@@ -198,10 +219,14 @@ class CentralWidget(QWidget):
                 elif self.status == OKButton.STATUS.NEXT:
 
                     self.status  = OKButton.STATUS.ACCEPT
-                    gui_object.round()
 
                     # shows statistics
                     gui_object.showStat()
+
+                    # starts a new round
+                    gui_object.round( None if result[0] else record )
+
+  
 
         return OKButton(gui_object)
 
@@ -336,14 +361,6 @@ class AnswerField(QWidget):
             if isinstance(widget, SingleField):
                 yield widget
 
-#        for i in range(len(self.children())):
-#
-#           # self.layout.itemAt(i) -> QWidgetItem
-#          widget = self.layout().itemAt(i).widget()
-#            
-#            if isinstance(widget, SingleField):
-#                yield widget
-
 
 class ExpectedAnswerField(AnswerField):
     FONT_SIZE = 15
@@ -390,59 +407,6 @@ class ExpectedAnswerField(AnswerField):
                           
                         else:
                             widget.appendText(word_failed_position_pair_list[i][0][pos], color=Qt.green)
-
-
-#class StatField(QWidget):
-#    FONT_SIZE = 10
-#    FONT_COLOR = Qt.gray
-#    FONT_TYPE = "Arial"
-#
-#    def __init__(self, bg=Qt.gray):
-#        
-#        super().__init__()        
-#        
-#        self.__bg = bg
-#        
-#        layout = QHBoxLayout()
-#        layout.setSpacing(3)
-#        self.setLayout(layout)
-#
-#
-#        portion_widget = SingleField(10, font=StatField.FONT_TYPE, size=StatField.FONT_SIZE, color=StatField.FONT_COLOR, bg=self.__bg)
-#        portion_widget.setEnabled(False)
-#        self.layout().addWidget(portion_widget)
-#
-#        success_widget = SingleField(4, font=StatField.FONT_TYPE, size=StatField.FONT_SIZE, color=StatField.FONT_COLOR, bg=self.__bg)
-#        success_widget.setEnabled(False)
-#        self.layout().addWidget(success_widget)
-#
-#        points_widget = SingleField(4, font=StatField.FONT_TYPE, size=StatField.FONT_SIZE, color=StatField.FONT_COLOR, bg=self.__bg)
-#        points_widget.setEnabled(False)
-#        self.layout().addWidget(points_widget)
-#
-#        sequence_widget = SingleField(30, font=StatField.FONT_TYPE, size=StatField.FONT_SIZE, color=StatField.FONT_COLOR, bg=self.__bg)
-#        sequence_widget.setEnabled(False)
-#        self.layout().addWidget(sequence_widget)
-#
-#        self.layout().addStretch(10)
-# 
-#    def setValues(self, good="", all="", remains="", success="", sequence="", points="" ):
-#        portion = good + "/" + all if len(good.strip()) > 0 and len(all.strip()) > 0 else ""
-#        portion += "/" + remains if len(remains.strip()) > 0 else ""
-#        
-#        widget = self.layout().itemAt(0).widget()
-#        widget.setPlainText(portion)
-#
-#        widget = self.layout().itemAt(1).widget()
-#        widget.setPlainText(success)        
-#
-#        widget = self.layout().itemAt(2).widget()
-#        widget.setText(points)
-#
-#        widget = self.layout().itemAt(3).widget()
-#        widget.setPlainText(sequence)  
-        
-
   
 class SingleField(QTextEdit):
 
@@ -521,8 +485,6 @@ class SingleField(QTextEdit):
         else:
             QTextEdit.keyPressEvent(self, event)
     
-#    def textChanged( self, )
-
     def changed_text(self):
         
         if len(self.toPlainText()) > self.length:
@@ -591,16 +553,42 @@ class ResultWidget(QLabel):
 def main():    
     app = QApplication(sys.argv)
 
-    file_name = "base"
-    part_of_speech_filter = "noun"
-    extra_filter = "bibli-03"
-    base_language="hu"
-    learning_language="sv"
-    say_out=True
-    show_pattern=True
-    show_note=True
-    
-    ex = GuiPrala(file_name, base_language, learning_language, part_of_speech_filter=part_of_speech_filter, extra_filter=extra_filter, say_out=say_out, show_pattern=show_pattern, show_note=show_note)
+    par = getIni()
+ 
+    try:
+        ex = GuiPrala(
+        par['file_name'], 
+        par['base_language'], 
+        par['learning_language'], 
+        part_of_speech_filter=par['part_of_speech_filter'], 
+        extra_filter=par['extra_filter'], 
+        say_out=par['say_out'], 
+        show_pattern=par['show_pattern'], 
+        show_note=par['show_note']
+        )
+    except EmptyDictionaryError as e:
+        print("------------------------")
+        print("Error: ")
+        print( e, "\n   File name: " + e.dict_file_name, "\n   Part of speech: " + e.part_of_speach, "\n   Extra filter: " + e.extra_filter )
+        print("------------------------")
+        exit(-1)
+
+    except NoDictionaryError as f:
+        print("------------------------")
+        print("Error: ")
+        print(f.dict_message + ": ", f.dict_file_name)
+        print()
+        res=input("Do you want me to generate '" + f.dict_file_name + "' dict file (Y/[n])?")
+        if res.strip() == "Y":
+            temp_dict_path="/".join(("templates", ConsolePrala.TEMPLATE_DICT_FILE_NAME))
+            binary_content=resource_string(__name__, temp_dict_path)
+            with open(f.dict_file_name, "w") as f:
+                print(binary_content.decode("utf-8"), file=f)
+        print("------------------------")
+        exit(-1)
+
+
+
     sys.exit(app.exec_())
     
    

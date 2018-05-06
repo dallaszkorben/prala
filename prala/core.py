@@ -119,10 +119,18 @@ class FilteredDictionary(object):
         """
         Gives back a randomly chosen line object from the filtered wordlist
 
+        input:  wrong_record 
+                    - It is unrelevant until all words was answerd 
+                    - If it is EMPTY then the chance depends on the points
+                    - If it is NOT EMPTY the the same question will be asked until it answered
+
         output: WordLine object
         """
+        
+        # calculates the next id to ask
         word_id=self.get_random_id(self.recent_stat_list, wrong_record)
 
+        # returns the word with the calculated id to ask
         return Record( self.base_language, self.learning_language, word_id, self.word_dict[ word_id ], self.recent_stat_list[ word_id ])
         #return word_id, self.word_dict[ word_id ]
 
@@ -158,6 +166,9 @@ class FilteredDictionary(object):
                 stat_list - [dictionary]    key:    word id
                                             value:  []
                 wrong_record - [record]
+                    - It is unrelevant until all words was answerd
+                    - If it is EMPTY then the chance depends on the points
+                    - If it is NOT EMPTY the the same question will be asked until it answered
         output:
                 a random word id from the list
         """
@@ -170,7 +181,10 @@ class FilteredDictionary(object):
             #all element with same chance - must be changed
             return random.choice(first_round_list)
     
+        # if the wrong_record parameter is NOT empty
         elif not wrong_record == None:
+
+            # then it must ask again the same word (record)
             return wrong_record.word_id
 
         #if empty - chances must be taken by statistics

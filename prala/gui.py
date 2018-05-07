@@ -25,6 +25,14 @@ class GuiPrala(QMainWindow):
     HEIGHT = 160
     WIDTH = 550
 
+    BASIC_FONT = "Arial"
+    BASIC_SIZE = 10
+    BASIC_COLOR = Qt.black
+    BASIC_BG = Qt.white
+    BASIC_ITALIC = False
+    BASIC_BOLD = False
+
+
     def __init__(self, file_name, base_language, learning_language, part_of_speech_filter="", extra_filter="", say_out=True, show_pattern=True, show_note=True):
 
         super().__init__()
@@ -39,19 +47,8 @@ class GuiPrala(QMainWindow):
         setup = getSetupIni()
         self.setWindowTitle( setup['title'] + " - " + setup['version'])
         self.setFixedHeight(GuiPrala.HEIGHT)
-        self.setFixedWidth(GuiPrala.WIDTH)
+        #self.setFixedWidth(GuiPrala.WIDTH)
         self.show()
-        
-
-#    def showEvent(self, event):
-#        super().showEvent(event)
-
-
-#        it = central_widget.f3.getFieldIterator()
-#        next(it).setFocus()
-
-#        central_widget.f3.setFirstFocus()
-#        central_widget.f2.setFocus()
 
     def center(self):
         """Aligns the window to middle on the screen"""
@@ -59,49 +56,6 @@ class GuiPrala(QMainWindow):
         cp=QDesktopWidget().availableGeometry().center()
         fg.moveCenter(cp)
         self.move(fg.topLeft())
-
-class MylWidget(QWidget):
-    
-    def __init__(self, main_gui):
-        super().__init__()
-
-        grid=QGridLayout()
-        self.setLayout(grid)
-        grid.setSpacing(1) 
-
-        self.f2=MyButton()
-        grid.addWidget( self.f2, 0, 1, 1, 1 )
-
-        self.f1=AnswerField(["1", "2", "3"], bg=self.palette().color(QPalette.Background))
-        grid.addWidget( self.f1, 0, 0, 1, 1 )
-
-        self.f3=AnswerField(["a", "b", "c"], bg=self.palette().color(QPalette.Background))
-        grid.addWidget( self.f3, 1, 0, 1, 2 )
-
-class MyButton(PicButton):
-
-    def __init__(self):
-
-                ok_button_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button.png"))))        
-                ok_button_hover_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-hover.png"))))
-                ok_button_focus_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-focus.png"))))        
-                ok_button_pressed_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-pressed.png"))))   
-                super().__init__(ok_button_pixmap, ok_button_focus_pixmap, ok_button_hover_pixmap, ok_button_pressed_pixmap)
-
-                self.clicked.connect(self.on_click)
-
-    def on_click(self):
-        print("clicked")                
-
-
-
-
-
-
-
-
-
-
 
 
 class CentralWidget(QWidget):
@@ -129,19 +83,18 @@ class CentralWidget(QWidget):
         
         good_answer=[""]
 
-        self.pos_field=TextLabel("", font_size=10, font_color=Qt.gray)
+        self.pos_field=TextLabel("", font="Courier New", size=10, color=Qt.gray)
 
-        self.question_field=TextLabel("", font_size=13, font_color=QColor(212, 140, 95))
+        self.question_field=TextLabel("", font="Courier New", size=13, color=QColor(212, 140, 95))
 
-        self.note_field=TextLabel("", font_size=10, font_color=Qt.gray, font_bold=True, font_italic=True)
+        self.note_field=TextLabel("", font="Courier New", size=10, color=Qt.gray, bold=True, italic=True)
 
-        self.answer_field=AnswerField(good_answer, bg=self.palette().color(QPalette.Background))
+        self.answer_field=AnswerField(good_answer, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
         self.answer_field.disableText()
 
+        self.good_answer_field=ExpectedAnswerField(good_answer, font="Courier new", size=15, color=Qt.black, bg=self.palette().color(QPalette.Background))
 
-        self.good_answer_field=ExpectedAnswerField(good_answer, bg=self.palette().color(QPalette.Background))
-
-        self.result_lamp=ResultWidget(failed_position_list=None)
+        self.result_lamp=ResultLamp(failed_position_list=None)
 
         self.ok_button = self.getOKButton()
 
@@ -175,10 +128,10 @@ class CentralWidget(QWidget):
         grid.addWidget( self.good_answer_field, 6, 0, 1, fields_columns-1 )
 
         # OK buttn
-        grid.addWidget( self.ok_button, 5, fields_columns-1, 1, 1, Qt.AlignCenter )
+        grid.addWidget( self.ok_button, 5, fields_columns-1, 1, 1, Qt.AlignRight )
 
         # RESULT lamp
-        grid.addWidget( self.result_lamp, 6, fields_columns-1, 1, 1, Qt.AlignCenter )
+        grid.addWidget( self.result_lamp, 6, fields_columns-1, 1, 1, Qt.AlignRight )
 
         self.setGeometry(300, 300, 450, 150)
         self.setWindowTitle(_("TITLE_WINDOW"))    
@@ -191,7 +144,7 @@ class CentralWidget(QWidget):
         good = str(overall[1])
         all = str(overall[0])
         remains = str(overall[2]) if overall[2] > 0 else ""
-        success = str(int(100 * overall[1] / overall[0])) + "%"
+        success = str(int(100 * overall[1] / overall[0])) + "%" if overall[0] != 0 else ""
         recent_stat = self.record.get_recent_stat()
         sequence =  ", ".join( [str(i) for i in recent_stat])
         points = str(self.myFilteredDictionary.get_points(recent_stat))
@@ -250,6 +203,8 @@ class CentralWidget(QWidget):
 
         self.answer_field.setFirstFocus()
 
+        # shows statistics
+        self.showStat()
 
     def getOKButton( gui_object ):
 
@@ -308,11 +263,11 @@ class CentralWidget(QWidget):
 
                     self.status  = OKButton.STATUS.ACCEPT
 
-                    # shows statistics
-                    gui_object.showStat()
-
                     # starts a new round
                     gui_object.round( None if self.result[0] else gui_object.record )
+
+#                    # shows statistics
+#                    gui_object.showStat()
 
                 elif self.status == OKButton.STATUS.START:
 
@@ -327,46 +282,41 @@ class CentralWidget(QWidget):
 
 
 class TextLabel(QLabel):
-    FONT_SIZE = 12
-    FONT_COLOR = Qt.black
-    FONT_NAME = "Courier New"
-    FONT_BOLD = False
-    FONT_ITALIC=True
 
-    def __init__(self, text, font_name=None, font_size=None, font_color=None, font_bold=None, font_italic=None):
+    def __init__(self, text, font=None, size=None, color=None, bold=None, italic=None):
         super().__init__()        
 
-        if font_name is None:
-            self.font_name = TextLabel.FONT_NAME
+        if font is None:
+            self.font = GuiPrala.BASIC_FONT
         else:
-            self.font_name = font_name
-        if font_size is None:
-            self.font_size = TextLabel.FONT_SIZE
+            self.font = font
+        if size is None:
+            self.size = GuiPrala.BASIC_SIZE
         else:
-            self.font_size = font_size
-        if font_color is None:
-            self.font_color = TextLabel.FONT_COLOR
+            self.size = size
+        if color is None:
+            self.color = GuiPrala.BASIC_COLOR
         else:
-            self.font_color = font_color
-        if font_bold is None:
-            self.font_bold = TextLabel.FONT_BOLD
+            self.color = color
+        if bold is None:
+            self.bold = GuiPrala.BASIC_BOLD
         else:
-            self.font_bold = font_bold
-        if font_italic is None:
-            self.font_italic = TextLabel.FONT_ITALIC
+            self.bold = bold
+        if italic is None:
+            self.italic = GuiPrala.BASIC_ITALIC
         else:
-            self.font_italic = font_italic
+            self.italic = italic
  
         # font type
         #self.setFont(QFont(self.font_name,pointSize=self.font_size, weight=QFont.Bold))
-        font = QFont(self.font_name,pointSize=self.font_size)
-        font.setBold( self.font_bold)
-        font.setItalic( self.font_italic )
+        font = QFont(self.font, pointSize=self.size)
+        font.setBold( self.bold)
+        font.setItalic( self.italic )
         self.setFont( font )
         
         # font color
         palette = QPalette()
-        palette.setColor(self.foregroundRole(), self.font_color)
+        palette.setColor(self.foregroundRole(), self.color)
         self.setPalette( palette )
 
         self.setText(text)
@@ -376,19 +326,35 @@ class TextLabel(QLabel):
 
 
 
-
-
-
-
 class AnswerField(QWidget):
-    FONT_BASIC_SIZE = 15
-    FONT_BASIC_COLOR = Qt.blue
-    FONT_BG = Qt.white
-
-    def __init__(self, expected_word_list, bg):
+ 
+    def __init__(self, expected_word_list, font=None, size=None, color=None, bg=None, bold=None, italic=None):
         super().__init__()        
         
-        self.__bg = bg
+        if font is None:
+            self.font = GuiPrala.BASIC_FONT
+        else:
+            self.font = font
+        if size is None:
+            self.size = GuiPrala.BASIC_SIZE
+        else:
+            self.size = size
+        if color is None:
+            self.color = GuiPrala.BASIC_COLOR
+        else:
+            self.color = color
+        if bg is None:
+            self.bg = GuiPrala.BASIC_BG
+        else:
+            self.bg = bg
+        if bold is None:
+            self.bold = GuiPrala.BASIC_BOLD
+        else:
+            self.bold = bold
+        if italic is None:
+            self.italic = GuiPrala.BASIC_ITALIC
+        else:
+            self.italic = italic
         
         layout = QHBoxLayout()
         layout.setSpacing(2)
@@ -431,7 +397,7 @@ class AnswerField(QWidget):
         Returns the empty SingleField of the specific part of the word
         with the right length, font size, basic_bg for inside use
         """
-        return SingleField(len(word), size=AnswerField.FONT_BASIC_SIZE, color=AnswerField.FONT_BASIC_COLOR, bg=self.getBackgroundColor())
+        return SingleField(len(word), font=self.font, size=self.size, color=self.color, bg=self.bg)
 
     def clearText(self):
         """
@@ -455,9 +421,6 @@ class AnswerField(QWidget):
             widget.clear()
             widget.setEnabled( True )
 
-    def getBackgroundColor(self):
-        return self.__bg
-
     def getExpectedWordList(self):
         return self.__expected_word_list
     
@@ -473,15 +436,6 @@ class AnswerField(QWidget):
             fields_content_list.append( widget.toPlainText().strip() )
 
         return fields_content_list
-
-        #for i in range(self.layout.count()):
-        #
-        #    # self.layout.itemAt(i) -> QWidgetItem
-        #    widget = self.layout.itemAt(i).widget()
-        #    
-        #    if isinstance(widget, SingleField):
-        #        fields_content_list.append( widget.toPlainText().strip() )
-        #return fields_content_list
 
     def getFieldIterator(self):
         """
@@ -499,18 +453,47 @@ class AnswerField(QWidget):
 
 
 class ExpectedAnswerField(AnswerField):
-    FONT_SIZE = 15
-    FONT_COLOR = Qt.black
+    WRONG_COLOR = Qt.red
+    GOOD_COLOR = Qt.green
 
-    def __init__(self, word_list, bg):
-        super().__init__(word_list, bg)
+    def __init__(self, word_list, font=None, size=None, color=None, bg=None, bold=None, italic=None):      
+        
+        if font is None:
+            self.font = GuiPrala.BASIC_FONT
+        else:
+            self.font = font
+        if size is None:
+            self.size = GuiPrala.BASIC_SIZE
+        else:
+            self.size = size
+        if color is None:
+            self.color = GuiPrala.BASIC_COLOR
+        else:
+            self.color = color
+        if bg is None:
+            self.bg = GuiPrala.BASIC_BG
+        else:
+            self.bg = bg
+        if bold is None:
+            self.bold = GuiPrala.BASIC_BOLD
+        else:
+            self.bold = bold
+        if italic is None:
+            self.italic = GuiPrala.BASIC_ITALIC
+        else:
+            self.italic = italic
+
+        self.wrong_color = ExpectedAnswerField.WRONG_COLOR
+        self.good_color = ExpectedAnswerField.GOOD_COLOR
+
+        super().__init__(word_list, font=self.font, size=self.size, color=self.color, bg=self.bg, bold=self.bold, italic=self.italic)
         
     def _get_single_field(self, word):
         """
         Returns the empty SingleField of the specific part of the word
         with the right length, font size, basic_bg for inside use
         """
-        sf = SingleField(len(word), size=ExpectedAnswerField.FONT_SIZE, color=ExpectedAnswerField.FONT_COLOR, bg=self.getBackgroundColor())
+        sf = SingleField(len(word), font=self.font, size=self.size, color=self.color, bg=self.bg)
         sf.setEnabled(False)
         return sf
 
@@ -539,18 +522,13 @@ class ExpectedAnswerField(AnswerField):
                     for pos in range(len(word_failed_position_pair_list[i][0])):
 
                         if pos in word_failed_position_pair_list[i][1]:
-                            widget.appendText(word_failed_position_pair_list[i][0][pos], color=Qt.red)
+                            widget.appendText(word_failed_position_pair_list[i][0][pos], color=self.wrong_color)
                           
                         else:
-                            widget.appendText(word_failed_position_pair_list[i][0][pos], color=Qt.green)
+                            widget.appendText(word_failed_position_pair_list[i][0][pos], color=self.good_color)
   
 class SingleField(QTextEdit):
-
-    BASIC_FONT = "Courier New"
-    BASIC_SIZE = 12
-    BASIC_COLOR = Qt.black
-    BASIC_BG = Qt.white
-
+ 
     def __init__(self, length, font=None, size=None, color=None, bg=None):
         super().__init__()
 
@@ -630,13 +608,8 @@ class SingleField(QTextEdit):
             cursor.setPosition(self.length)
             self.setTextCursor(cursor)
 
-        #print(self.toPlainText())
 
-    
-
-
-
-class ResultWidget(QLabel):
+class ResultLamp(QLabel):
     """
     Shows the failed_position_list as a red/green light
     """
@@ -702,8 +675,6 @@ def main():
                 print(binary_content.decode("utf-8"), file=f)
         print("------------------------")
         exit(-1)
-
-
 
     sys.exit(app.exec_())
     

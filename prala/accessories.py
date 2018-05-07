@@ -1,10 +1,10 @@
-import configparser
 import os
 import gettext
 
-from pkg_resources import resource_string
+#from pkg_resources import resource_string
 from iso639 import to_name
 from optparse import OptionParser
+import configparser
 
 from PyQt5.QtWidgets import QAbstractButton, QSizePolicy, QPushButton
 from PyQt5.QtGui import QPainter
@@ -286,25 +286,3 @@ def getConfigIni():
     ])
 
 
-def getSetupIni():
-    
-    file = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'ini', 'setup.ini')
-    parser = configparser.RawConfigParser()
-    parser.read( file )
-
-    version = "0.0.0"
-    name = "prala"
-    title = 'Prala'
-
-    try:
-        version = parser.get("DEFAULT", 'version')
-        name = parser.get("DEFAULT", 'name')
-        title = parser.get("DEFAULT", 'title')
-    except (configparser.NoSectionError, configparser.NoOptionError):
-        pass
-
-    return dict([ 
-        ('name', name), 
-        ('title', title), 
-        ('version', version)
-    ])

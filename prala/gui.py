@@ -1,5 +1,6 @@
 import sys
-from prala.accessories import _, Enum, PicButton, getConfigIni, getSetupIni
+from prala.common.common import getSetupIni
+from prala.accessories import _, Enum, PicButton, getConfigIni
 from prala.core import FilteredDictionary
 from prala.core import Record
 from prala.accessories import Property
@@ -62,9 +63,14 @@ class CentralWidget(QWidget):
         # Fields
         # --------------------
         #
-        self.question_field=QuestionField("")
- 
+        
         good_answer=[""]
+
+        self.pos_field=TextLabel("", font_size=10, font_color=Qt.gray)
+
+        self.question_field=TextLabel("", font_size=13, font_color=QColor(212, 140, 95))
+
+        self.note_field=TextLabel("", font_size=10, font_color=Qt.gray, font_bold=True, font_italic=True)
 
         self.answer_field=AnswerField(good_answer, bg=self.palette().color(QPalette.Background))
 
@@ -88,8 +94,14 @@ class CentralWidget(QWidget):
 
         fields_columns=4
 
+        # PART OF SPEECH field
+        grid.addWidget( self.pos_field, 0, 0, 1, fields_columns )
+
         # QUESTION field
-        grid.addWidget( self.question_field, 1, 0, 1, fields_columns )
+        grid.addWidget( self.question_field, 1, 0, 1, fields_columns-1 )
+
+        # NOTE field
+        grid.addWidget( self.note_field, 1, fields_columns-1, 1, 1 )
 
         # ANSWER field
         grid.addWidget( self.answer_field, 5, 0, 1, fields_columns-1)
@@ -128,6 +140,7 @@ class CentralWidget(QWidget):
             The other part of hte round is in the OKButton's on_click() method
 
             -calculates the the new word to ask
+            -fill up the POS field
             -fill up the QUESTION field
             -fill up the ANSWER field
             -fill up the EXPECTED ANSWER field
@@ -147,12 +160,17 @@ class CentralWidget(QWidget):
 
         self.record = self.myFilteredDictionary.get_next_random_record(wrong_record)
 
-        # show part of speech: record.part_of_speach
-        
+        # pos field
+        self.pos_field.setText(self.record.part_of_speach)
+
         good_answer = self.record.learning_words
 
         # question
-        self.question_field.setField( self.record.base_word )
+        self.question_field.setText( self.record.base_word )
+
+        # note field
+        if self.show_note:
+            self.note_field.setText(self.record.note)
 
         # answer
         self.answer_field.setExpectedWordList( good_answer )
@@ -231,22 +249,173 @@ class CentralWidget(QWidget):
         return OKButton(gui_object)
 
 
-class QuestionField(QLabel):
-    FONT_SIZE = 13
-    FONT_COLOR = QColor(212, 140, 95)
-    def __init__(self, question):
-        super().__init__()
+class TextLabel(QLabel):
+    FONT_SIZE = 12
+    FONT_COLOR = Qt.black
+    FONT_NAME = "Courier New"
+    FONT_BOLD = False
+    FONT_ITALIC=True
+
+    def __init__(self, text, font_name=None, font_size=None, font_color=None, font_bold=None, font_italic=None):
+        super().__init__()        
+
+        if font_name is None:
+            self.font_name = TextLabel.FONT_NAME
+        else:
+            self.font_name = font_name
+        if font_size is None:
+            self.font_size = TextLabel.FONT_SIZE
+        else:
+            self.font_size = font_size
+        if font_color is None:
+            self.font_color = TextLabel.FONT_COLOR
+        else:
+            self.font_color = font_color
+        if font_bold is None:
+            self.font_bold = TextLabel.FONT_BOLD
+        else:
+            self.font_bold = font_bold
+        if font_italic is None:
+            self.font_italic = TextLabel.FONT_ITALIC
+        else:
+            self.font_italic = font_italic
+ 
+        # font type
+        #self.setFont(QFont(self.font_name,pointSize=self.font_size, weight=QFont.Bold))
+        font = QFont(self.font_name,pointSize=self.font_size)
+        font.setBold( self.font_bold)
+        font.setItalic( self.font_italic )
+        self.setFont( font )
         
-        self.setFont(QFont("Courier New",pointSize=QuestionField.FONT_SIZE, weight=QFont.Bold))
-        
+        # font color
         palette = QPalette()
-        palette.setColor(self.foregroundRole(), QuestionField.FONT_COLOR)
+        palette.setColor(self.foregroundRole(), self.font_color)
         self.setPalette( palette )
 
-        self.setField(question)
+        self.setText(text)
 
-    def setField(self, question):
-        self.setText(question)
+    def setText(self, text):
+        super().setText(text)
+
+
+
+
+class WordField(QWidget):
+    FONT_SIZE = 15
+    FONT_COLOR = Qt.black
+    FONT_BG = Qt.white
+    SPACE = 2
+
+    def __init__(self, word, font_size=None, font_color=None, font_bg=None):
+        super().__init__()        
+        
+        if font_size is None:
+            self.font_size = WordField.FONT_SIZE
+        else:
+            self.font_size = font_size
+        if font_color is None:
+            self.font_color = WordField.FONT_COLOR
+        else:
+            self.font_color = font_color
+        if font_bg is None:
+            self.font_bg = WordField.FONT_BG
+        else:
+            self.font_bg = font_bg
+
+        # Set layout
+        layout = QHBoxLayout()
+        layout.setSpacing(WordField.SPACE)
+        self.setLayout(layout)
+
+        self.setWord(word)
+
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+    def __clear_layout(self, layout):
+        
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+                else:
+                    self.__clear_layout(item.layout())
+
+    def __get_single_field(self, word):
+        """
+        Returns the empty SingleField of the specific part of the word
+        with the right length, font size, basic_bg for inside use
+        """
+        return SingleField(len(word), size=self.font_size, color=self.font_color, bg=self.font_bg)
+
+    def setWord(self, word):
+        """
+        Every time when it is called, a new layout will be generated
+        """
+
+        # saves the word
+        self.__word = word
+    
+        # remove all widgets
+        self.__clear_layout(self.layout())
+          
+        # place an empty SingelField
+        self.layout().addWidget( self.__get_single_field(word) )
+
+        # add an Strech to the end
+        self.layout().addStretch(10)
+
+    def clearText(self):
+        """
+        Clear all fields of text
+        """
+        for widget in self.getFieldIterator():
+            widget.clear()
+
+    def disableText(self):
+        """
+        Disable all fields
+        """
+        for widget in self.getFieldIterator():
+            widget.setEnabled( False )
+
+    def enableText(self):
+        """
+        Clears and Enables all fields to edit
+        """
+        for widget in self.getFieldIterator():
+            widget.clear()
+            widget.setEnabled( True )
+
+    def getWord(self):
+        """
+        Returns the set word
+        """
+        return self.__word
+    
+    def getFieldsContentList(self):
+        """
+        Returns the contents of the fields in a list if it was modified by user
+        """
+        fields_content_list = []
+        
+        for widget in self.getFieldIterator():
+            
+            # adds the text from the field to the list
+            fields_content_list.append( widget.toPlainText().strip() )
+
+        return fields_content_list
+
+    def getFieldIterator(self):
+        """
+        Returns the SingleField widgets
+        """
+        for widget in self.children():
+            if isinstance(widget, SingleField):
+                yield widget
+
+
 
 class AnswerField(QWidget):
     FONT_BASIC_SIZE = 15

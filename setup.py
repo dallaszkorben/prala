@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from prala.accessories import getSetupIni
+from prala.common.common import getSetupIni
 
 sp=getSetupIni()
 
@@ -27,6 +27,7 @@ setup(
       package_data={
         'prala': ['templates/*.dict'],
         'prala': ['images/*.png'],
+        'prala': ['common/*setup.ini'],
         'prala': ['locales/*/LC_MESSAGES/*.mo']
       },
       include_package_data = True,

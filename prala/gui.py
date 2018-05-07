@@ -18,21 +18,40 @@ from PyQt5.QtCore import Qt, QSize, QEvent
 from PyQt5.QtGui import QPixmap, QIcon, QPalette
 from pkg_resources import resource_string, resource_filename
 
+from time import sleep
+
 class GuiPrala(QMainWindow):
+
+    HEIGHT = 160
+    WIDTH = 550
 
     def __init__(self, file_name, base_language, learning_language, part_of_speech_filter="", extra_filter="", say_out=True, show_pattern=True, show_note=True):
 
         super().__init__()
 
-        central_widget = CentralWidget( self, file_name, base_language, learning_language, part_of_speech_filter, extra_filter, say_out, show_pattern, show_note)
-        self.setCentralWidget( central_widget )
+        self.central_widget = CentralWidget( self, file_name, base_language, learning_language, part_of_speech_filter, extra_filter, say_out, show_pattern, show_note)
+        #central_widget = MylWidget( self )
+        self.setCentralWidget( self.central_widget )
 
-        self.resize(500, 150)
+        self.resize(GuiPrala.WIDTH, GuiPrala.HEIGHT)
         self.statusBar().showMessage("")
         self.center()
         setup = getSetupIni()
         self.setWindowTitle( setup['title'] + " - " + setup['version'])
+        self.setFixedHeight(GuiPrala.HEIGHT)
+        self.setFixedWidth(GuiPrala.WIDTH)
         self.show()
+        
+
+#    def showEvent(self, event):
+#        super().showEvent(event)
+
+
+#        it = central_widget.f3.getFieldIterator()
+#        next(it).setFocus()
+
+#        central_widget.f3.setFirstFocus()
+#        central_widget.f2.setFocus()
 
     def center(self):
         """Aligns the window to middle on the screen"""
@@ -40,6 +59,50 @@ class GuiPrala(QMainWindow):
         cp=QDesktopWidget().availableGeometry().center()
         fg.moveCenter(cp)
         self.move(fg.topLeft())
+
+class MylWidget(QWidget):
+    
+    def __init__(self, main_gui):
+        super().__init__()
+
+        grid=QGridLayout()
+        self.setLayout(grid)
+        grid.setSpacing(1) 
+
+        self.f2=MyButton()
+        grid.addWidget( self.f2, 0, 1, 1, 1 )
+
+        self.f1=AnswerField(["1", "2", "3"], bg=self.palette().color(QPalette.Background))
+        grid.addWidget( self.f1, 0, 0, 1, 1 )
+
+        self.f3=AnswerField(["a", "b", "c"], bg=self.palette().color(QPalette.Background))
+        grid.addWidget( self.f3, 1, 0, 1, 2 )
+
+class MyButton(PicButton):
+
+    def __init__(self):
+
+                ok_button_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button.png"))))        
+                ok_button_hover_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-hover.png"))))
+                ok_button_focus_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-focus.png"))))        
+                ok_button_pressed_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-pressed.png"))))   
+                super().__init__(ok_button_pixmap, ok_button_focus_pixmap, ok_button_hover_pixmap, ok_button_pressed_pixmap)
+
+                self.clicked.connect(self.on_click)
+
+    def on_click(self):
+        print("clicked")                
+
+
+
+
+
+
+
+
+
+
+
 
 class CentralWidget(QWidget):
     
@@ -55,7 +118,7 @@ class CentralWidget(QWidget):
 
         self.initUI()
         
-        self.round()
+        #self.round()
         
     def initUI(self):        
                 
@@ -73,6 +136,8 @@ class CentralWidget(QWidget):
         self.note_field=TextLabel("", font_size=10, font_color=Qt.gray, font_bold=True, font_italic=True)
 
         self.answer_field=AnswerField(good_answer, bg=self.palette().color(QPalette.Background))
+        self.answer_field.disableText()
+
 
         self.good_answer_field=ExpectedAnswerField(good_answer, bg=self.palette().color(QPalette.Background))
 
@@ -101,7 +166,7 @@ class CentralWidget(QWidget):
         grid.addWidget( self.question_field, 1, 0, 1, fields_columns-1 )
 
         # NOTE field
-        grid.addWidget( self.note_field, 1, fields_columns-1, 1, 1 )
+        grid.addWidget( self.note_field, 1, fields_columns-1, 1, 1, Qt.AlignRight )
 
         # ANSWER field
         grid.addWidget( self.answer_field, 5, 0, 1, fields_columns-1)
@@ -118,6 +183,7 @@ class CentralWidget(QWidget):
         self.setGeometry(300, 300, 450, 150)
         self.setWindowTitle(_("TITLE_WINDOW"))    
         self.show()
+
 
     def showStat(self):
         overall=self.myFilteredDictionary.get_recent_stat_list()                    
@@ -159,11 +225,10 @@ class CentralWidget(QWidget):
         self.result_lamp.set_result(None)
 
         self.record = self.myFilteredDictionary.get_next_random_record(wrong_record)
+        good_answer = self.record.learning_words
 
         # pos field
         self.pos_field.setText(self.record.part_of_speach)
-
-        good_answer = self.record.learning_words
 
         # question
         self.question_field.setText( self.record.base_word )
@@ -174,6 +239,7 @@ class CentralWidget(QWidget):
 
         # answer
         self.answer_field.setExpectedWordList( good_answer )
+        self.answer_field.enableText()
 
         # expected answer
         self.good_answer_field.setExpectedWordList( good_answer )
@@ -182,12 +248,16 @@ class CentralWidget(QWidget):
         if self.say_out:
             Thread(target = self.record.say_out_base, args = ()).start()
 
+        self.answer_field.setFirstFocus()
+
+
     def getOKButton( gui_object ):
 
         class OKButton(PicButton):
             STATUS = Enum(
-                ACCEPT = 0,
-                NEXT = 1
+                START = 0,
+                ACCEPT = 1,
+                NEXT = 2
             )
 
             def __init__(self, gui_object):
@@ -200,7 +270,7 @@ class CentralWidget(QWidget):
                 super().__init__(ok_button_pixmap, ok_button_focus_pixmap, ok_button_hover_pixmap, ok_button_pressed_pixmap)
 
                 self.clicked.connect(self.on_click)
-                self.status = OKButton.STATUS.ACCEPT
+                self.status = OKButton.STATUS.START
 
             def on_click(self):
                 
@@ -244,7 +314,14 @@ class CentralWidget(QWidget):
                     # starts a new round
                     gui_object.round( None if self.result[0] else gui_object.record )
 
-  
+                elif self.status == OKButton.STATUS.START:
+
+                    self.status  = OKButton.STATUS.ACCEPT
+
+                    # starts a new round
+                    gui_object.round( None )
+
+
 
         return OKButton(gui_object)
 
@@ -300,120 +377,6 @@ class TextLabel(QLabel):
 
 
 
-class WordField(QWidget):
-    FONT_SIZE = 15
-    FONT_COLOR = Qt.black
-    FONT_BG = Qt.white
-    SPACE = 2
-
-    def __init__(self, word, font_size=None, font_color=None, font_bg=None):
-        super().__init__()        
-        
-        if font_size is None:
-            self.font_size = WordField.FONT_SIZE
-        else:
-            self.font_size = font_size
-        if font_color is None:
-            self.font_color = WordField.FONT_COLOR
-        else:
-            self.font_color = font_color
-        if font_bg is None:
-            self.font_bg = WordField.FONT_BG
-        else:
-            self.font_bg = font_bg
-
-        # Set layout
-        layout = QHBoxLayout()
-        layout.setSpacing(WordField.SPACE)
-        self.setLayout(layout)
-
-        self.setWord(word)
-
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-    def __clear_layout(self, layout):
-        
-        if layout is not None:
-            while layout.count():
-                item = layout.takeAt(0)
-                widget = item.widget()
-                if widget is not None:
-                    widget.deleteLater()
-                else:
-                    self.__clear_layout(item.layout())
-
-    def __get_single_field(self, word):
-        """
-        Returns the empty SingleField of the specific part of the word
-        with the right length, font size, basic_bg for inside use
-        """
-        return SingleField(len(word), size=self.font_size, color=self.font_color, bg=self.font_bg)
-
-    def setWord(self, word):
-        """
-        Every time when it is called, a new layout will be generated
-        """
-
-        # saves the word
-        self.__word = word
-    
-        # remove all widgets
-        self.__clear_layout(self.layout())
-          
-        # place an empty SingelField
-        self.layout().addWidget( self.__get_single_field(word) )
-
-        # add an Strech to the end
-        self.layout().addStretch(10)
-
-    def clearText(self):
-        """
-        Clear all fields of text
-        """
-        for widget in self.getFieldIterator():
-            widget.clear()
-
-    def disableText(self):
-        """
-        Disable all fields
-        """
-        for widget in self.getFieldIterator():
-            widget.setEnabled( False )
-
-    def enableText(self):
-        """
-        Clears and Enables all fields to edit
-        """
-        for widget in self.getFieldIterator():
-            widget.clear()
-            widget.setEnabled( True )
-
-    def getWord(self):
-        """
-        Returns the set word
-        """
-        return self.__word
-    
-    def getFieldsContentList(self):
-        """
-        Returns the contents of the fields in a list if it was modified by user
-        """
-        fields_content_list = []
-        
-        for widget in self.getFieldIterator():
-            
-            # adds the text from the field to the list
-            fields_content_list.append( widget.toPlainText().strip() )
-
-        return fields_content_list
-
-    def getFieldIterator(self):
-        """
-        Returns the SingleField widgets
-        """
-        for widget in self.children():
-            if isinstance(widget, SingleField):
-                yield widget
 
 
 
@@ -529,6 +492,10 @@ class AnswerField(QWidget):
         for widget in self.children():
             if isinstance(widget, SingleField):
                 yield widget
+
+    def setFirstFocus(self):
+        self.layout().itemAt(0).widget().setFocus()
+
 
 
 class ExpectedAnswerField(AnswerField):
@@ -666,27 +633,7 @@ class SingleField(QTextEdit):
         #print(self.toPlainText())
 
     
-class __SingleField(QLineEdit):
-        def __init__(self, length, basic_size, basic_color, basic_bg):
-            QLineEdit.__init__(self)
-            
-            # monospace font - basic_size:15 Bold
-            self.setFont(QFont("Courier New",pointSize=basic_size, weight=QFont.Bold))
 
-            # font basic_color and basic_bg basic_color
-            palette = QPalette()
-            palette.setColor(QPalette.Text, basic_color)
-            palette.setColor(self.backgroundRole(), basic_bg)
-            self.setPalette( palette )
-
-            # border not visible
-            self.setFrame(False)
-
-            # max enabled characters
-            self.setMaxLength(length)
-            
-            # widht of 'W'
-            self.setFixedWidth(self.fontMetrics().width("W" * length) + 5)
 
 
 class ResultWidget(QLabel):

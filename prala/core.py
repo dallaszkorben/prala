@@ -4,6 +4,7 @@ import random
 import numpy as np
 import hashlib
 import re
+from time import sleep
 from prala.accessories import Enum
 from prala.exceptions import EmptyDictionaryError
 from prala.exceptions import NoDictionaryError
@@ -302,7 +303,10 @@ class Record(object):
         engine.setProperty('voice', self.base_language)		#voice id
         #engine.setProperty('rate', 150)
         #engine.setProperty('volume', 1)
-        
+
+        #while engine.isBusy():
+        #    sleep(0.5)
+
         #TODO parameter to ENUM
         engine.say(self.base_word)
         engine.runAndWait()

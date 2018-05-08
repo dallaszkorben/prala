@@ -5,10 +5,9 @@ The aim of this project is to produce a software which can be used by a **langua
 <table border="0">
 <blockquote><tr>
 <blockquote><td>
-<img src='https://github.com/dallaszkorben/hu.akoel.prala/blob/master/wiki/console-wrong-answer.png' width='300'>
+<img src='https://github.com/dallaszkorben/prala/blob/master/wiki/console-wrong-answer.png' width='400'>
 <td>
-<img src='https://github.com/dallaszkorben/hu.akoel.prala/blob/master/wiki/gui-good-answer-0.1.3.png' width='300'>
-<td>
+<img src='https://github.com/dallaszkorben/prala/blob/master/wiki/gui-good-answer-0.1.3.png' width='400'>
 </blockquote><tr/></blockquote>
 <blockquote><tr>
 <blockquote>

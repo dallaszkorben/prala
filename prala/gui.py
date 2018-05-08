@@ -59,6 +59,7 @@ class GuiPrala(QMainWindow):
 
 
 class CentralWidget(QWidget):
+    FIELD_DISTANCE = 3
     
     def __init__(self, main_gui, file_name, base_language, learning_language, part_of_speech_filter="", extra_filter="", say_out=True, show_pattern=True, show_note=True):
         super().__init__()
@@ -89,10 +90,10 @@ class CentralWidget(QWidget):
 
         self.note_field=TextLabel("", font="Courier New", size=10, color=Qt.gray, bold=True, italic=True)
 
-        self.answer_field=AnswerField(good_answer, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
+        self.answer_field=AnswerField(good_answer, spacing=CentralWidget.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
         self.answer_field.disableText()
 
-        self.good_answer_field=ExpectedAnswerField(good_answer, font="Courier new", size=15, color=Qt.black, bg=self.palette().color(QPalette.Background))
+        self.good_answer_field=ExpectedAnswerField(good_answer, spacing=CentralWidget.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.black, bg=self.palette().color(QPalette.Background))
 
         self.result_lamp=ResultLamp(failed_position_list=None)
 
@@ -276,12 +277,13 @@ class CentralWidget(QWidget):
                     # starts a new round
                     gui_object.round( None )
 
-
-
         return OKButton(gui_object)
 
 
 class TextLabel(QLabel):
+    """
+    This class represents a simple text label with specific caracteristics of font
+    """
 
     def __init__(self, text, font=None, size=None, color=None, bold=None, italic=None):
         super().__init__()        
@@ -327,8 +329,15 @@ class TextLabel(QLabel):
 
 
 class AnswerField(QWidget):
+    """
+    This class represents fields in one row with specific characteristics of font.
+    The fields are for typing the answer for the question.
+    The fields are enabled for typing when the app expecting the answer for the question.
+    The fields are disabled for typing when the app showing the right answer for the question
+    """
  
-    def __init__(self, expected_word_list, font=None, size=None, color=None, bg=None, bold=None, italic=None):
+    SPACING = 1
+    def __init__(self, expected_word_list, spacing=None, font=None, size=None, color=None, bg=None, bold=None, italic=None):
         super().__init__()        
         
         if font is None:
@@ -355,9 +364,13 @@ class AnswerField(QWidget):
             self.italic = GuiPrala.BASIC_ITALIC
         else:
             self.italic = italic
+        if spacing is None:
+            self.spacing = AnswerField.SPACING
+        else:
+            self.spacing = spacing
         
         layout = QHBoxLayout()
-        layout.setSpacing(2)
+        layout.setSpacing( self.spacing )
         self.setLayout(layout)
 
         self.setExpectedWordList(expected_word_list)
@@ -453,40 +466,19 @@ class AnswerField(QWidget):
 
 
 class ExpectedAnswerField(AnswerField):
+    """
+    This class represents the right answer fro the question.
+    The vertical positions of the characters are synchronized with the characters in the answer's fields
+    """
     WRONG_COLOR = Qt.red
     GOOD_COLOR = Qt.green
 
-    def __init__(self, word_list, font=None, size=None, color=None, bg=None, bold=None, italic=None):      
+    def __init__(self, word_list, spacing=None, font=None, size=None, color=None, bg=None, bold=None, italic=None):      
         
-        if font is None:
-            self.font = GuiPrala.BASIC_FONT
-        else:
-            self.font = font
-        if size is None:
-            self.size = GuiPrala.BASIC_SIZE
-        else:
-            self.size = size
-        if color is None:
-            self.color = GuiPrala.BASIC_COLOR
-        else:
-            self.color = color
-        if bg is None:
-            self.bg = GuiPrala.BASIC_BG
-        else:
-            self.bg = bg
-        if bold is None:
-            self.bold = GuiPrala.BASIC_BOLD
-        else:
-            self.bold = bold
-        if italic is None:
-            self.italic = GuiPrala.BASIC_ITALIC
-        else:
-            self.italic = italic
-
         self.wrong_color = ExpectedAnswerField.WRONG_COLOR
         self.good_color = ExpectedAnswerField.GOOD_COLOR
 
-        super().__init__(word_list, font=self.font, size=self.size, color=self.color, bg=self.bg, bold=self.bold, italic=self.italic)
+        super().__init__(word_list, spacing=spacing, font=font, size=size, color=color, bg=bg, bold=bold, italic=italic)
         
     def _get_single_field(self, word):
         """
@@ -528,6 +520,14 @@ class ExpectedAnswerField(AnswerField):
                             widget.appendText(word_failed_position_pair_list[i][0][pos], color=self.good_color)
   
 class SingleField(QTextEdit):
+    """
+    This class represents a single field with specific characteristic of font.
+    The max number of characters enabled to type determining the width of the field, defined by the 'length' parameter
+    When this fields are part of the AnswerField class then it is possible to type characters in it by the user
+    In this case the behavior of the field is the following:
+        -Clicking Enter on the field causing the next widget (field/button) gets the focus
+        -Reaching the max number of characters causing the next widget gets the focus
+    """
  
     def __init__(self, length, font=None, size=None, color=None, bg=None):
         super().__init__()
@@ -607,6 +607,8 @@ class SingleField(QTextEdit):
             cursor = self.textCursor()
             cursor.setPosition(self.length)
             self.setTextCursor(cursor)
+        elif len(self.toPlainText()) == self.length:
+            self.parent().focusNextChild()
 
 
 class ResultLamp(QLabel):

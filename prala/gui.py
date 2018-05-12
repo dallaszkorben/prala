@@ -78,12 +78,13 @@ class GuiPrala(QMainWindow):
         #quit.setStatusTip(_("TIP_TOOLBAR_QUIT"))
         quit_action.triggered.connect(QApplication.instance().quit)
 
-        # ENABLE TO SAT
+        # ENABLE TO SAY
         enable_to_say_icon = QIcon()
         enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-on-tool.png"))) ), QIcon.Normal, QIcon.On )
 #        enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-on-tool.png"))) ), QIcon.Active)
         enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-off-tool.png"))) ), QIcon.Normal, QIcon.Off)
         self.enable_to_say_button = QToolButton()
+        self.enable_to_say_button.setFocusPolicy(Qt.NoFocus)
         self.enable_to_say_button.setIcon(enable_to_say_icon)
         self.enable_to_say_button.setCheckable(True)
         self.enable_to_say_button.toggled.connect(self.changeEnableToSay)

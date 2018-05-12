@@ -68,11 +68,11 @@ class GuiPrala(QMainWindow):
         self.start_action = QAction(QIcon( start_icon ), _("TOOLBAR_START"), self)
         self.start_action.setShortcut("Ctrl+S")
         #start.setStatusTip(_("TIP_TOOLBAR_START"))
-        self.start_action.triggered.connect(self.setDisableStart)
+        self.start_action.triggered.connect(self.changeStartEnability)
 
-        sayout_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "say-tool.png"))) ), _("TOOLBAR_SAYOUT"), self)
-        sayout_action.setShortcut("Ctrl+T")
-        sayout_action.triggered.connect(QApplication.instance().quit)
+        self.sayout_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "say-tool.png"))) ), _("TOOLBAR_SAYOUT"), self)
+        self.sayout_action.setShortcut("Ctrl+T")
+        self.sayout_action.triggered.connect(self.sayOut)
 
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -93,12 +93,13 @@ class GuiPrala(QMainWindow):
         toolbar.addAction(open_action)
         toolbar.addSeparator()
         toolbar.addAction(self.start_action)
-        toolbar.addAction(sayout_action)
+        toolbar.addAction(self.sayout_action)
         toolbar.addSeparator()
         toolbar.addWidget(spacer)
         toolbar.addAction(quit_action)
 
-        
+        self.setStartEnable()
+
 #        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
 
         #
@@ -125,14 +126,32 @@ class GuiPrala(QMainWindow):
         fg.moveCenter(cp)
         self.move(fg.topLeft())
 
-    def setEnableStart(self):
+    def changeStartEnability(self):
+        if self.start_action.isEnabled():
+            self.setStartDisable()
+        else:
+            self.setStartEnable()
+
+    def setStartEnable(self):
         self.start_action.setEnabled(True)        
         self.setCentralWidget( None )
+        
+        self.sayout_action.setEnabled(False)
 
-    def setDisableStart(self):
+    def setStartDisable(self):
         self.start_action.setEnabled(False)
         self.asking_widget = AskingWidget( self )
         self.setCentralWidget( self.asking_widget )
+
+        self.sayout_action.setEnabled(True)
+
+    def sayOut(self):
+
+        if self.asking_widget.ok_button.status == OKButton.STATUS.ACCEPT:
+            Thread(target = self.asking_widget.record.say_out_base, args = ()).start()
+        else:
+            Thread(target = self.asking_widget.record.say_out_learning, args = ()).start()
+
 
 class AskingWidget(QWidget):
     FIELD_DISTANCE = 3
@@ -176,7 +195,7 @@ class AskingWidget(QWidget):
 
         self.result_lamp=ResultLamp(failed_position_list=None)
 
-        self.ok_button = self.getOKButton()
+        self.ok_button = OKButton( self )
 
         # --------------------
         # general grid setting
@@ -286,78 +305,68 @@ class AskingWidget(QWidget):
         # shows statistics
         self.showStat()
 
-    def getOKButton( asking_object ):
 
-        class OKButton(PicButton):
-            STATUS = Enum(
-                START = 0,
-                ACCEPT = 1,
-                NEXT = 2
-            )
+class OKButton(PicButton):
+    STATUS = Enum(
+        ACCEPT = 0,
+        NEXT = 1
+    )
 
-            def __init__(self, asking_object):
-                self.asking_object = asking_object
+    def __init__(self, asking_object):
+        self.asking_object = asking_object
 
-                ok_button_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button.png"))))        
-                ok_button_hover_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-hover.png"))))
-                ok_button_focus_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-focus.png"))))        
-                ok_button_pressed_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-pressed.png"))))   
-                super().__init__(ok_button_pixmap, ok_button_focus_pixmap, ok_button_hover_pixmap, ok_button_pressed_pixmap)
+        ok_button_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button.png"))))        
+        ok_button_hover_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-hover.png"))))
+        ok_button_focus_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-focus.png"))))        
+        ok_button_pressed_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-pressed.png"))))   
+        super().__init__(ok_button_pixmap, ok_button_focus_pixmap, ok_button_hover_pixmap, ok_button_pressed_pixmap)
 
-                self.clicked.connect(self.on_click)
-                self.status = OKButton.STATUS.ACCEPT
+        self.clicked.connect(self.on_click)
+        self.status = OKButton.STATUS.ACCEPT
 
-            def on_click(self):
+    def on_click(self):
                 
-                if self.status == OKButton.STATUS.ACCEPT:
+        if self.status == OKButton.STATUS.ACCEPT:
         
-                    asking_object.answer_field.disableText()
+            self.asking_object.answer_field.disableText()
 
-                    # shows the difference between the the answer and the good answer -> tuple
-                    # [0] -> False/True
-                    # [1] -> list of list of thedisable positions of the difference in the words
-                    self.result=asking_object.record.check_answer(asking_object.answer_field.getFieldsContentList())
+            # shows the difference between the the answer and the good answer -> tuple
+            # [0] -> False/True
+            # [1] -> list of list of thedisable positions of the difference in the words
+            self.result=self.asking_object.record.check_answer(self.asking_object.answer_field.getFieldsContentList())
 
-                    # write back the stat
-                    asking_object.myFilteredDictionary.add_result_to_stat(asking_object.record.word_id,self.result[0])
+            # write back the stat
+            self.asking_object.myFilteredDictionary.add_result_to_stat(self.asking_object.record.word_id,self.result[0])
 
-                    # show the result in green/red lamp
-                    if self.result[0]:
-                        asking_object.result_lamp.set_result(True)
-                    else:
-                        asking_object.result_lamp.set_result(False)
+            # show the result in green/red lamp
+            if self.result[0]:
+                self.asking_object.result_lamp.set_result(True)
+            else:
+                self.asking_object.result_lamp.set_result(False)
 
-                    # shows the expected answer with differences
-                    asking_object.good_answer_field.showText(self.result[1], asking_object.answer_field.getFieldsContentList())
+            # shows the expected answer with differences
+            self.asking_object.good_answer_field.showText(self.result[1], self.asking_object.answer_field.getFieldsContentList())
 
-                    # shows statistics
-                    asking_object.showStat()
+            # shows statistics
+            self.asking_object.showStat()
 
-                    self.status = OKButton.STATUS.NEXT
+            self.status = OKButton.STATUS.NEXT
             
-                    # say out the right answer in thread          
-                    if asking_object.main_gui.say_out:
-                        Thread(target = asking_object.record.say_out_learning, args = ()).start()
+            # say out the right answer in thread          
+            if self.asking_object.main_gui.say_out:
+                Thread(target = self.asking_object.record.say_out_learning, args = ()).start()
 
-                elif self.status == OKButton.STATUS.NEXT:
+        elif self.status == OKButton.STATUS.NEXT:
 
-                    self.status  = OKButton.STATUS.ACCEPT
+            self.status  = OKButton.STATUS.ACCEPT
 
-                    # starts a new round
-                    asking_object.round( None if self.result[0] else asking_object.record )
+            # starts a new round
+            self.asking_object.round( None if self.result[0] else self.asking_object.record )
 
-#                    # shows statistics
-#                    asking_object.showStat()
+            # shows statistics
+            self.asking_object.showStat()
 
-                elif self.status == OKButton.STATUS.START:
-
-                    self.status  = OKButton.STATUS.ACCEPT
-
-                    # starts a new round
-                    asking_object.round( None )
-
-        return OKButton(asking_object)
-
+ 
 
 class TextLabel(QLabel):
     """

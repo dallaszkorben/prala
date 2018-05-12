@@ -12,8 +12,9 @@ from threading import Thread
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QFrame, QMainWindow,
     QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QTextEdit,
-    QDesktopWidget, QSizePolicy)
-from PyQt5.QtGui import QPainter, QFont, QColor
+    QDesktopWidget, QSizePolicy, QAction)   
+from PyQt5.QtGui import QPainter, QFont, QColor, QIcon
+from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QSize, QEvent
 from PyQt5.QtGui import QPixmap, QIcon, QPalette
 from pkg_resources import resource_string, resource_filename
@@ -22,7 +23,7 @@ from time import sleep
 
 class GuiPrala(QMainWindow):
 
-    HEIGHT = 160
+    HEIGHT = 220
     WIDTH = 550
 
     BASIC_FONT = "Arial"
@@ -32,21 +33,88 @@ class GuiPrala(QMainWindow):
     BASIC_ITALIC = False
     BASIC_BOLD = False
 
-
     def __init__(self, file_name, base_language, learning_language, part_of_speech_filter="", extra_filter="", say_out=True, show_pattern=True, show_note=True):
 
         super().__init__()
 
-        self.central_widget = CentralWidget( self, file_name, base_language, learning_language, part_of_speech_filter, extra_filter, say_out, show_pattern, show_note)
-        #central_widget = MylWidget( self )
-        self.setCentralWidget( self.central_widget )
+        self.file_name = file_name
+        self.base_language = base_language
+        self.learning_language = learning_language
+        self.part_of_speech_filter = part_of_speech_filter
+        self.extra_filter = extra_filter
+        self.say_out = say_out
+        self.show_pattern = show_pattern
+        self.show_note = show_note
 
-        self.resize(GuiPrala.WIDTH, GuiPrala.HEIGHT)
+        #self.asking_widget = AskingWidget( self, file_name, base_language, learning_language, part_of_speech_filter, extra_filter, say_out, show_pattern, show_note)
+        #self.setCentralWidget( self.asking_widget )
+
+        #
+        # --- Tool Bar --- 
+        #
+ 
+        open_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "open-tool.png"))) ), _("TOOLBAR_OPEN"), self)
+        open_action.setShortcut("Ctrl+O")
+        open_action.triggered.connect(QApplication.instance().quit)
+
+        start_icon = QIcon()
+        start_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "start-tool.png"))) ))
+#icon.addPixmap(QPixmap('disabled.png'), QIcon.Disabled)
+#icon.addPixmap(QPixmap('clicking.png'), QIcon.Active)
+#icon.addPixmap(QPixmap('on.png'), QIcon.Normal, QIcon.On)
+
+
+#        start = QAction(QIcon( resource_filename(__name__, "/".join(("images", "start-tool.png"))) ), _("TOOLBAR_START"), self)
+        self.start_action = QAction(QIcon( start_icon ), _("TOOLBAR_START"), self)
+        self.start_action.setShortcut("Ctrl+S")
+        #start.setStatusTip(_("TIP_TOOLBAR_START"))
+        self.start_action.triggered.connect(self.setDisableStart)
+
+        sayout_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "say-tool.png"))) ), _("TOOLBAR_SAYOUT"), self)
+        sayout_action.setShortcut("Ctrl+T")
+        sayout_action.triggered.connect(QApplication.instance().quit)
+
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+
+        quit_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "quit-tool.png"))) ), _("TOOLBAR_QUIT"), self)
+        quit_action.setShortcut("Ctrl+Q")
+        #quit.setStatusTip(_("TIP_TOOLBAR_QUIT"))
+        quit_action.triggered.connect(QApplication.instance().quit)
+
+        
+        
+
+ 
+
+
+        toolbar = self.addToolBar('My tool')
+        toolbar.addAction(open_action)
+        toolbar.addSeparator()
+        toolbar.addAction(self.start_action)
+        toolbar.addAction(sayout_action)
+        toolbar.addSeparator()
+        toolbar.addWidget(spacer)
+        toolbar.addAction(quit_action)
+
+        
+#        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
+
+        #
+        # --- Status Bar ---
+        #
         self.statusBar().showMessage("")
-        self.center()
+
+        #
+        # --- Window ---
+        #
+        # read setup.ini (version, name)
         setup = getSetupIni()
         self.setWindowTitle( setup['title'] + " - " + setup['version'])
-        self.setFixedHeight(GuiPrala.HEIGHT)
+        self.resize(GuiPrala.WIDTH, GuiPrala.HEIGHT)
+        self.setFixedHeight(GuiPrala.HEIGHT)        
+        self.center()
         #self.setFixedWidth(GuiPrala.WIDTH)
         self.show()
 
@@ -57,23 +125,34 @@ class GuiPrala(QMainWindow):
         fg.moveCenter(cp)
         self.move(fg.topLeft())
 
+    def setEnableStart(self):
+        self.start_action.setEnabled(True)        
+        self.setCentralWidget( None )
 
-class CentralWidget(QWidget):
+    def setDisableStart(self):
+        self.start_action.setEnabled(False)
+        self.asking_widget = AskingWidget( self )
+        self.setCentralWidget( self.asking_widget )
+
+class AskingWidget(QWidget):
     FIELD_DISTANCE = 3
     
-    def __init__(self, main_gui, file_name, base_language, learning_language, part_of_speech_filter="", extra_filter="", say_out=True, show_pattern=True, show_note=True):
+    def __init__(self, main_gui ):
         super().__init__()
         
         self.main_gui = main_gui
 
-        self.myFilteredDictionary=FilteredDictionary(file_name, base_language, learning_language, part_of_speech_filter, extra_filter) 
-        self.say_out=say_out
-        self.show_pattern=show_pattern
-        self.show_note=show_note
+        self.myFilteredDictionary=FilteredDictionary(
+            main_gui.file_name, 
+            main_gui.base_language, 
+            main_gui.learning_language, 
+            main_gui.part_of_speech_filter, 
+            main_gui.extra_filter
+        ) 
 
         self.initUI()
         
-        #self.round()
+        self.round()
         
     def initUI(self):        
                 
@@ -90,10 +169,10 @@ class CentralWidget(QWidget):
 
         self.note_field=TextLabel("", font="Courier New", size=10, color=Qt.gray, bold=True, italic=True)
 
-        self.answer_field=AnswerField(good_answer, spacing=CentralWidget.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
+        self.answer_field=AnswerField(good_answer, spacing=AskingWidget.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
         self.answer_field.disableText()
 
-        self.good_answer_field=ExpectedAnswerField(good_answer, spacing=CentralWidget.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.black, bg=self.palette().color(QPalette.Background))
+        self.good_answer_field=ExpectedAnswerField(good_answer, spacing=AskingWidget.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.black, bg=self.palette().color(QPalette.Background))
 
         self.result_lamp=ResultLamp(failed_position_list=None)
 
@@ -134,9 +213,9 @@ class CentralWidget(QWidget):
         # RESULT lamp
         grid.addWidget( self.result_lamp, 6, fields_columns-1, 1, 1, Qt.AlignRight )
 
-        self.setGeometry(300, 300, 450, 150)
-        self.setWindowTitle(_("TITLE_WINDOW"))    
-        self.show()
+#        self.setGeometry(300, 300, 450, 150)
+#        self.setWindowTitle(_("TITLE_WINDOW"))    
+#        self.show()
 
 
     def showStat(self):
@@ -188,7 +267,7 @@ class CentralWidget(QWidget):
         self.question_field.setText( self.record.base_word )
 
         # note field
-        if self.show_note:
+        if self.main_gui.show_note:
             self.note_field.setText(self.record.note)
 
         # answer
@@ -199,7 +278,7 @@ class CentralWidget(QWidget):
         self.good_answer_field.setExpectedWordList( good_answer )
 
         # say out the question in a thread
-        if self.say_out:
+        if self.main_gui.say_out:
             Thread(target = self.record.say_out_base, args = ()).start()
 
         self.answer_field.setFirstFocus()
@@ -207,7 +286,7 @@ class CentralWidget(QWidget):
         # shows statistics
         self.showStat()
 
-    def getOKButton( gui_object ):
+    def getOKButton( asking_object ):
 
         class OKButton(PicButton):
             STATUS = Enum(
@@ -216,8 +295,8 @@ class CentralWidget(QWidget):
                 NEXT = 2
             )
 
-            def __init__(self, gui_object):
-                self.gui_object = gui_object
+            def __init__(self, asking_object):
+                self.asking_object = asking_object
 
                 ok_button_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button.png"))))        
                 ok_button_hover_pixmap = QPixmap(resource_filename(__name__, "/".join(("images", "ok-button-hover.png"))))
@@ -226,58 +305,58 @@ class CentralWidget(QWidget):
                 super().__init__(ok_button_pixmap, ok_button_focus_pixmap, ok_button_hover_pixmap, ok_button_pressed_pixmap)
 
                 self.clicked.connect(self.on_click)
-                self.status = OKButton.STATUS.START
+                self.status = OKButton.STATUS.ACCEPT
 
             def on_click(self):
                 
                 if self.status == OKButton.STATUS.ACCEPT:
         
-                    gui_object.answer_field.disableText()
+                    asking_object.answer_field.disableText()
 
                     # shows the difference between the the answer and the good answer -> tuple
                     # [0] -> False/True
                     # [1] -> list of list of thedisable positions of the difference in the words
-                    self.result=gui_object.record.check_answer(gui_object.answer_field.getFieldsContentList())
+                    self.result=asking_object.record.check_answer(asking_object.answer_field.getFieldsContentList())
 
                     # write back the stat
-                    gui_object.myFilteredDictionary.add_result_to_stat(gui_object.record.word_id,self.result[0])
+                    asking_object.myFilteredDictionary.add_result_to_stat(asking_object.record.word_id,self.result[0])
 
                     # show the result in green/red lamp
                     if self.result[0]:
-                        gui_object.result_lamp.set_result(True)
+                        asking_object.result_lamp.set_result(True)
                     else:
-                        gui_object.result_lamp.set_result(False)
+                        asking_object.result_lamp.set_result(False)
 
                     # shows the expected answer with differences
-                    gui_object.good_answer_field.showText(self.result[1], gui_object.answer_field.getFieldsContentList())
+                    asking_object.good_answer_field.showText(self.result[1], asking_object.answer_field.getFieldsContentList())
 
                     # shows statistics
-                    gui_object.showStat()
+                    asking_object.showStat()
 
                     self.status = OKButton.STATUS.NEXT
             
                     # say out the right answer in thread          
-                    if gui_object.say_out:
-                        Thread(target = gui_object.record.say_out_learning, args = ()).start()
+                    if asking_object.main_gui.say_out:
+                        Thread(target = asking_object.record.say_out_learning, args = ()).start()
 
                 elif self.status == OKButton.STATUS.NEXT:
 
                     self.status  = OKButton.STATUS.ACCEPT
 
                     # starts a new round
-                    gui_object.round( None if self.result[0] else gui_object.record )
+                    asking_object.round( None if self.result[0] else asking_object.record )
 
 #                    # shows statistics
-#                    gui_object.showStat()
+#                    asking_object.showStat()
 
                 elif self.status == OKButton.STATUS.START:
 
                     self.status  = OKButton.STATUS.ACCEPT
 
                     # starts a new round
-                    gui_object.round( None )
+                    asking_object.round( None )
 
-        return OKButton(gui_object)
+        return OKButton(asking_object)
 
 
 class TextLabel(QLabel):

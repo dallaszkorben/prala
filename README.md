@@ -3,18 +3,14 @@
 The aim of this project is to produce a software which can be used by a **language** learner to learn and practice new words, expressions, phrases. _(I will refer to them as **words**)_
 
 <table border="0">
-<blockquote><tr>
-<blockquote><td>
-<img src='https://github.com/dallaszkorben/hu.akoel.prala/blob/master/wiki/console-wrong-answer.png' width='300'>
-<td>
-<img src='https://github.com/dallaszkorben/hu.akoel.prala/blob/master/wiki/gui-good-answer-0.1.3.png' width='300'>
-<td>
-</blockquote><tr/></blockquote>
-<blockquote><tr>
-<blockquote>
+<tr>
+<td><img src='https://github.com/dallaszkorben/prala/blob/master/wiki/console-wrong-answer.png' width='400'>
+<td><img src='https://github.com/dallaszkorben/prala/blob/master/wiki/gui-good-answer-0.1.3.png' width='400'>
+<tr/>
+<tr>
 <td>Console<br>
 <td>GUI<br>
-</blockquote><tr /></blockquote>
+<tr/>
 <table>
 
 
@@ -33,7 +29,7 @@ The main features are the following:
 ### Preconditions
  - Minimum Python3.6 should be installed on your computer
  - pip (compatible to the Python version) should be installed on your computer
- - Text-to-speech synthesier should be installed on your computer. It is platform dependent.
+ - Text-to-speech synthesizer should be installed on your computer. It is platform dependent.
     - Windows: **SAPI5**
     - Mac OS X: **NSSpeechSynthesizer**
     - Linux: **espeak**

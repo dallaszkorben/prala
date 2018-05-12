@@ -1,6 +1,6 @@
 import sys
 from prala.common.common import getSetupIni
-from prala.accessories import _, Enum, PicButton, getConfigIni
+from prala.accessories import _, Enum, PicButton, getConfigIni, Property
 from prala.core import FilteredDictionary
 from prala.core import Record
 from prala.accessories import Property
@@ -12,11 +12,10 @@ from threading import Thread
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QFrame, QMainWindow,
     QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QTextEdit,
-    QDesktopWidget, QSizePolicy, QAction)   
-from PyQt5.QtGui import QPainter, QFont, QColor, QIcon
+    QDesktopWidget, QSizePolicy, QAction, QToolButton)   
+from PyQt5.QtGui import QPainter, QFont, QColor, QIcon, QPixmap, QPalette
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QSize, QEvent
-from PyQt5.QtGui import QPixmap, QIcon, QPalette
 from pkg_resources import resource_string, resource_filename
 
 from time import sleep
@@ -57,15 +56,8 @@ class GuiPrala(QMainWindow):
         open_action.setShortcut("Ctrl+O")
         open_action.triggered.connect(QApplication.instance().quit)
 
-        start_icon = QIcon()
-        start_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "start-tool.png"))) ))
-#icon.addPixmap(QPixmap('disabled.png'), QIcon.Disabled)
-#icon.addPixmap(QPixmap('clicking.png'), QIcon.Active)
-#icon.addPixmap(QPixmap('on.png'), QIcon.Normal, QIcon.On)
-
-
-#        start = QAction(QIcon( resource_filename(__name__, "/".join(("images", "start-tool.png"))) ), _("TOOLBAR_START"), self)
-        self.start_action = QAction(QIcon( start_icon ), _("TOOLBAR_START"), self)
+        #start = QAction(QIcon( resource_filename(__name__, "/".join(("images", "start-tool.png"))) ), _("TOOLBAR_START"), self)
+        self.start_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "start-tool.png"))) ), _("TOOLBAR_START"), self)
         self.start_action.setShortcut("Ctrl+S")
         #start.setStatusTip(_("TIP_TOOLBAR_START"))
         self.start_action.triggered.connect(self.changeStartEnability)
@@ -83,10 +75,23 @@ class GuiPrala(QMainWindow):
         #quit.setStatusTip(_("TIP_TOOLBAR_QUIT"))
         quit_action.triggered.connect(QApplication.instance().quit)
 
-        
-        
 
- 
+
+
+        enable_to_say_icon = QIcon()
+        enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-on-tool.png"))) ), QIcon.Normal, QIcon.On )
+#        enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-on-tool.png"))) ), QIcon.Active)
+        enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-off-tool.png"))) ), QIcon.Normal, QIcon.Off)
+        #self.enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-on-tool.png"))) ), QIcon.On)
+
+        self.enable_to_say_button = QToolButton()
+        self.enable_to_say_button.setIcon(enable_to_say_icon)
+        self.enable_to_say_button.setCheckable(True)
+        #self.enable_to_say_action = QAction(self.enable_to_say_icon, _("TOOLBAR_ENABLE_TO_SAY"), self)
+        #self.enable_to_say_action.setShortcut("Ctrl+D")
+        #start.setStatusTip(_("TIP_TOOLBAR_START"))
+        #self.enable_to_say_action.triggered.connect(self.changeEnableToSay)
+        self.enable_to_say_button.toggled.connect(self.changeEnableToSay)
 
 
         toolbar = self.addToolBar('My tool')
@@ -94,11 +99,14 @@ class GuiPrala(QMainWindow):
         toolbar.addSeparator()
         toolbar.addAction(self.start_action)
         toolbar.addAction(self.sayout_action)
+        toolbar.addWidget(self.enable_to_say_button)
         toolbar.addSeparator()
         toolbar.addWidget(spacer)
         toolbar.addAction(quit_action)
 
+        # Default settings
         self.setStartEnable()
+        self.enable_to_say_button.setChecked(self.say_out)
 
 #        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
 
@@ -152,6 +160,10 @@ class GuiPrala(QMainWindow):
         else:
             Thread(target = self.asking_widget.record.say_out_learning, args = ()).start()
 
+    def changeEnableToSay(self, checked):
+        p = Property.get_instance()
+        p.update("general", "say_out", checked)
+        self.say_out = checked
 
 class AskingWidget(QWidget):
     FIELD_DISTANCE = 3

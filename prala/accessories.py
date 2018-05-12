@@ -27,7 +27,7 @@ class Translation(object):
     """
     This singleton handles the translation.
     The object is created by calling the get_instance() method.
-    The language is defined in the ini file's [language] section as "language" key
+    The language is defined in the ini file's [languages] section as "language" key
     The _() method is to get back the translated string.
     If the translation file or the translation in the file is not there then the 
     string in the parameter will we used instead of raiseing error
@@ -53,7 +53,7 @@ class Translation(object):
         self.translate = gettext.translation(PACKAGE_NAME, localedir=localedir, languages=self.__get_language_code(), fallback=True)
 
     def __get_language_code(self):
-	    return [self.property.get('language', 'language', DEFAULT_LANGUAGE)]
+	    return [self.property.get('languages', 'language', DEFAULT_LANGUAGE)]
 
     def _(self, text):
         return self.translate.gettext(text)
@@ -267,7 +267,7 @@ def getConfigIni():
     extra_filter = options.extra_filter
 
     property=Property.get_instance()
-    language=property.get('language', 'language', DEFAULT_LANGUAGE)    
+    language=property.get('languages', 'language', DEFAULT_LANGUAGE)    
     base_language=to_name(property.get('languages', 'base_language', DEFAULT_BASE_LANGUAGE)).lower()
     learning_language=to_name(property.get('languages', 'learning_language', DEFAULT_LEARNING_LANGUAGE)).lower()
     say_out=property.get_boolean('general', 'say_out', DEFAULT_SAY_OUT)    

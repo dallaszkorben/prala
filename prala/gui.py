@@ -1,9 +1,9 @@
 import sys
 from prala.common.common import getSetupIni
-from prala.accessories import _, Enum, PicButton, getConfigIni, Property
+from prala.accessories import (_, Enum, PicButton, ConfigIni, getConfigIni, 
+    Property)
 from prala.core import FilteredDictionary
 from prala.core import Record
-from prala.accessories import Property
 from prala.exceptions import EmptyDictionaryError
 from prala.exceptions import NoDictionaryError
 
@@ -12,13 +12,14 @@ from threading import Thread
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QFrame, QMainWindow,
     QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QTextEdit,
-    QDesktopWidget, QSizePolicy, QAction, QToolButton)   
+    QDesktopWidget, QSizePolicy, QAction, QToolButton, QMessageBox)   
 from PyQt5.QtGui import QPainter, QFont, QColor, QIcon, QPixmap, QPalette
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QSize, QEvent
-from pkg_resources import resource_string, resource_filename
 
+from pkg_resources import resource_string, resource_filename
 from time import sleep
+from optparse import OptionParser
 
 class GuiPrala(QMainWindow):
 
@@ -32,18 +33,18 @@ class GuiPrala(QMainWindow):
     BASIC_ITALIC = False
     BASIC_BOLD = False
 
-    def __init__(self, file_name, base_language, learning_language, part_of_speech_filter="", extra_filter="", say_out=True, show_pattern=True, show_note=True):
+    def __init__(self, file_name="", part_of_speech_filter="", extra_filter=""):
 
         super().__init__()
 
         self.file_name = file_name
-        self.base_language = base_language
-        self.learning_language = learning_language
+        #self.base_language = base_language
+        #self.learning_language = learning_language
         self.part_of_speech_filter = part_of_speech_filter
         self.extra_filter = extra_filter
-        self.say_out = say_out
-        self.show_pattern = show_pattern
-        self.show_note = show_note
+        #self.say_out = say_out
+        #self.show_pattern = show_pattern
+        #self.show_note = show_note
 
         #self.asking_widget = AskingWidget( self, file_name, base_language, learning_language, part_of_speech_filter, extra_filter, say_out, show_pattern, show_note)
         #self.setCentralWidget( self.asking_widget )
@@ -52,16 +53,18 @@ class GuiPrala(QMainWindow):
         # --- Tool Bar --- 
         #
  
+        # OPEN
         open_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "open-tool.png"))) ), _("TOOLBAR_OPEN"), self)
         open_action.setShortcut("Ctrl+O")
         open_action.triggered.connect(QApplication.instance().quit)
 
-        #start = QAction(QIcon( resource_filename(__name__, "/".join(("images", "start-tool.png"))) ), _("TOOLBAR_START"), self)
+        # START
         self.start_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "start-tool.png"))) ), _("TOOLBAR_START"), self)
         self.start_action.setShortcut("Ctrl+S")
         #start.setStatusTip(_("TIP_TOOLBAR_START"))
         self.start_action.triggered.connect(self.changeStartEnability)
 
+        # SAY OUT
         self.sayout_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "say-tool.png"))) ), _("TOOLBAR_SAYOUT"), self)
         self.sayout_action.setShortcut("Ctrl+T")
         self.sayout_action.triggered.connect(self.sayOut)
@@ -69,30 +72,21 @@ class GuiPrala(QMainWindow):
         spacer = QWidget()
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-
+        # QUIT
         quit_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "quit-tool.png"))) ), _("TOOLBAR_QUIT"), self)
         quit_action.setShortcut("Ctrl+Q")
         #quit.setStatusTip(_("TIP_TOOLBAR_QUIT"))
         quit_action.triggered.connect(QApplication.instance().quit)
 
-
-
-
+        # ENABLE TO SAT
         enable_to_say_icon = QIcon()
         enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-on-tool.png"))) ), QIcon.Normal, QIcon.On )
 #        enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-on-tool.png"))) ), QIcon.Active)
         enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-off-tool.png"))) ), QIcon.Normal, QIcon.Off)
-        #self.enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-on-tool.png"))) ), QIcon.On)
-
         self.enable_to_say_button = QToolButton()
         self.enable_to_say_button.setIcon(enable_to_say_icon)
         self.enable_to_say_button.setCheckable(True)
-        #self.enable_to_say_action = QAction(self.enable_to_say_icon, _("TOOLBAR_ENABLE_TO_SAY"), self)
-        #self.enable_to_say_action.setShortcut("Ctrl+D")
-        #start.setStatusTip(_("TIP_TOOLBAR_START"))
-        #self.enable_to_say_action.triggered.connect(self.changeEnableToSay)
         self.enable_to_say_button.toggled.connect(self.changeEnableToSay)
-
 
         toolbar = self.addToolBar('My tool')
         toolbar.addAction(open_action)
@@ -105,10 +99,9 @@ class GuiPrala(QMainWindow):
         toolbar.addAction(quit_action)
 
         # Default settings
-        self.setStartEnable()
-        self.enable_to_say_button.setChecked(self.say_out)
 
-#        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
+        self.setStartEnable()
+        self.enable_to_say_button.setChecked(ConfigIni.getInstance().isSayOut())
 
         #
         # --- Status Bar ---
@@ -123,8 +116,8 @@ class GuiPrala(QMainWindow):
         self.setWindowTitle( setup['title'] + " - " + setup['version'])
         self.resize(GuiPrala.WIDTH, GuiPrala.HEIGHT)
         self.setFixedHeight(GuiPrala.HEIGHT)        
-        self.center()
         #self.setFixedWidth(GuiPrala.WIDTH)
+        self.center()
         self.show()
 
     def center(self):
@@ -147,22 +140,27 @@ class GuiPrala(QMainWindow):
         self.sayout_action.setEnabled(False)
 
     def setStartDisable(self):
-        self.start_action.setEnabled(False)
-        self.asking_widget = AskingWidget( self )
-        self.setCentralWidget( self.asking_widget )
+        try:
+            self.asking_widget = AskingWidget( self )
+            self.setCentralWidget( self.asking_widget )
+            self.start_action.setEnabled(False)
+            self.sayout_action.setEnabled(True)
 
-        self.sayout_action.setEnabled(True)
+        except EmptyDictionaryError as e:
+            QMessageBox.critical(self, _("ERROR"), _("ERROR_DICTIONARY_IS_EMPTY") + "\n" + f.dict_file_name)
+        except NoDictionaryError as f:
+            QMessageBox.critical(self, _("ERROR"), _("ERROR_DICTIONARY_NOT_FOUND") + "\n" + f.dict_file_name)
+
 
     def sayOut(self):
 
         if self.asking_widget.ok_button.status == OKButton.STATUS.ACCEPT:
-            Thread(target = self.asking_widget.record.say_out_base, args = ()).start()
+            Thread(target = self.asking_wFilteredDictionaryidget.record.say_out_base, args = ()).start()
         else:
             Thread(target = self.asking_widget.record.say_out_learning, args = ()).start()
 
     def changeEnableToSay(self, checked):
-        p = Property.get_instance()
-        p.update("general", "say_out", checked)
+        ConfigIni.getInstance().setSayOut( checked )
         self.say_out = checked
 
 class AskingWidget(QWidget):
@@ -173,10 +171,12 @@ class AskingWidget(QWidget):
         
         self.main_gui = main_gui
 
+        config_ini=ConfigIni.getInstance()
+
         self.myFilteredDictionary=FilteredDictionary(
             main_gui.file_name, 
-            main_gui.base_language, 
-            main_gui.learning_language, 
+            config_ini.getBaseLanguage(), 
+            config_ini.getLearningLanguage(), 
             main_gui.part_of_speech_filter, 
             main_gui.extra_filter
         ) 
@@ -297,8 +297,10 @@ class AskingWidget(QWidget):
         # question
         self.question_field.setText( self.record.base_word )
 
+        config_ini = ConfigIni.getInstance()
+
         # note field
-        if self.main_gui.show_note:
+        if config_ini.isShowNote:
             self.note_field.setText(self.record.note)
 
         # answer
@@ -309,7 +311,7 @@ class AskingWidget(QWidget):
         self.good_answer_field.setExpectedWordList( good_answer )
 
         # say out the question in a thread
-        if self.main_gui.say_out:
+        if config_ini.isSayOut():
             Thread(target = self.record.say_out_base, args = ()).start()
 
         self.answer_field.setFirstFocus()
@@ -742,42 +744,40 @@ class ResultLamp(QLabel):
 
 
 def main():    
+    
+    #
+    # Handle parameters
+    #
+    parser=OptionParser("%prog [dict_file_name] [-p part_of_speech_filter] [-f extra_filter]")
+    parser.add_option("--pos", "-p", dest="part_of_speech_filter", default="", type="string", help="specify part of speech")
+    parser.add_option("--filter", "-f", dest="extra_filter", default="", type="string", help="specify extra filter")
+    (options, args) = parser.parse_args()
+
+    if len(args) > 1:   
+        parser.error("Incorrect number of arguments")
+        exit()
+
+    #
+    # parameters for the app
+    #
+    file_name = args[0]
+    part_of_speech_filter = options.part_of_speech_filter
+    extra_filter = options.extra_filter
+
+    #
+    # Configuration file
+    #
+    config_ini = ConfigIni.getInstance()
+
+    #
+    # Application
+    #
     app = QApplication(sys.argv)
-
-    par = getConfigIni()
- 
-    try:
-        ex = GuiPrala(
-        par['file_name'], 
-        par['base_language'], 
-        par['learning_language'], 
-        part_of_speech_filter=par['part_of_speech_filter'], 
-        extra_filter=par['extra_filter'], 
-        say_out=par['say_out'], 
-        show_pattern=par['show_pattern'], 
-        show_note=par['show_note']
+    ex = GuiPrala(
+        file_name=file_name, 
+        part_of_speech_filter=part_of_speech_filter, 
+        extra_filter=extra_filter, 
         )
-    except EmptyDictionaryError as e:
-        print("------------------------")
-        print("Error: ")
-        print( e, "\n   File name: " + e.dict_file_name, "\n   Part of speech: " + e.part_of_speach, "\n   Extra filter: " + e.extra_filter )
-        print("------------------------")
-        exit(-1)
-
-    except NoDictionaryError as f:
-        print("------------------------")
-        print("Error: ")
-        print(f.dict_message + ": ", f.dict_file_name)
-        print()
-        res=input("Do you want me to generate '" + f.dict_file_name + "' dict file (Y/[n])?")
-        if res.strip() == "Y":
-            temp_dict_path="/".join(("templates", ConsolePrala.TEMPLATE_DICT_FILE_NAME))
-            binary_content=resource_string(__name__, temp_dict_path)
-            with open(f.dict_file_name, "w") as f:
-                print(binary_content.decode("utf-8"), file=f)
-        print("------------------------")
-        exit(-1)
-
     sys.exit(app.exec_())
     
    

@@ -11,14 +11,9 @@ from PyQt5.QtGui import QPainter
 from PyQt5.QtCore import QSize
  
 
-INI_FILE_NAME="config.ini"
 
-DEFAULT_LANGUAGE="en"
-DEFAULT_BASE_LANGUAGE="en"
-DEFAULT_LEARNING_LANGUAGE="sv"
-DEFAULT_SAY_OUT=True
-DEFAULT_SHOW_PATTERN=True
-DEFAULT_SHOW_NOTE=True
+
+
 
 LOCALES_DIR='locales'
 PACKAGE_NAME='prala'    
@@ -48,12 +43,12 @@ class Translation(object):
         return inst
         
     def __init__(self):
-        self.property=Property.get_instance()
+        self.config_ini=ConfigIni.getInstance()
         localedir = os.path.join(os.path.abspath(os.path.dirname(__file__)), LOCALES_DIR)
         self.translate = gettext.translation(PACKAGE_NAME, localedir=localedir, languages=self.__get_language_code(), fallback=True)
 
     def __get_language_code(self):
-	    return [self.property.get('languages', 'language', DEFAULT_LANGUAGE)]
+	    return [self.config_ini.getLanguage()]
 
     def _(self, text):
         return self.translate.gettext(text)
@@ -70,6 +65,8 @@ class Enum(object):
 
     def size(self):
         return len(self.named_values)
+
+
 
 class Property(object):
     """
@@ -92,14 +89,14 @@ class Property(object):
         return cls.__instance
 
     @classmethod
-    def get_instance(cls):
+    def getInstance(cls, file):
         inst = cls.__new__(cls)
-        cls.__init__(cls.__instance)     
+        cls.__init__(cls.__instance, file)     
         return inst
         
-    def __init__(self):
-        #self.file=file
-        self.file = os.path.join(os.getcwd(), INI_FILE_NAME)
+    def __init__(self, file):
+        self.file=file
+        #self.file = os.path.join(os.getcwd(), INI_FILE_NAME)
         self.parser = configparser.RawConfigParser()
 
     def __write_file(self):
@@ -120,7 +117,7 @@ class Property(object):
 
         return result
 
-    def get_boolean(self, section, key, default_value):
+    def getBoolean(self, section, key, default_value):
         if not os.path.exists(self.file):
             self.parser[section]={key: default_value}
             self.__write_file()
@@ -153,6 +150,66 @@ class Property(object):
         for s, vs in self.parser.items():
             out += ["[" + s + "]"] + ["  " + k + "=" + v for k, v in vs.items()]
         return "\n".join(out)
+
+class ConfigIni( Property ):
+    INI_FILE_NAME="config.ini"
+
+    DEFAULT_LANGUAGE="en"
+    DEFAULT_BASE_LANGUAGE="en"
+    DEFAULT_LEARNING_LANGUAGE="sv"
+    DEFAULT_SAY_OUT=True
+    DEFAULT_SHOW_PATTERN=True
+    DEFAULT_SHOW_NOTE=True
+
+    # (section, key, default)
+    LANGUAGE = ("languages", "language", "en")
+    BASE_LANGUAGE = ("languages", "base_language", "en")
+    LEARNING_LANGUAGE = ("languages", "learning_language", "sv")
+    SAY_OUT = ("general", "say_out", True)
+    SHOW_NOTE = ("general", "show_note", True)
+    SHOW_PATTERN = ("general", "show_pattern", True)
+
+    @classmethod
+    def getInstance( cls ):
+        file = os.path.join(os.getcwd(), ConfigIni.INI_FILE_NAME)
+        return super().getInstance( file )
+
+    def getLanguage(self):
+        return self.get(self.LANGUAGE[0], self.LANGUAGE[1], self.LANGUAGE[2])
+
+    def getBaseLanguage(self):
+        return self.get(self.BASE_LANGUAGE[0], self.BASE_LANGUAGE[1], self.BASE_LANGUAGE[2])
+
+    def getLearningLanguage(self):
+        return self.get(self.LEARNING_LANGUAGE[0], self.LEARNING_LANGUAGE[1], self.LEARNING_LANGUAGE[2])
+
+    def isSayOut(self):
+        return self.getBoolean(self.SAY_OUT[0], self.SAY_OUT[1], self.SAY_OUT[2])
+
+    def isShowNote(self):
+        return self.getBoolean(self.SHOW_NOTE[0], self.SHOW_NOTE[1], self.SHOW_NOTE[2])
+
+    def isShowPattern(self):
+        return self.getBoolean(self.SHOW_PATTERN[0], self.SHOW_PATTERN[1], self.SHOW_PATTERN[2])
+
+    def setLanguage(self, lang):
+        self.update(self.LANGUAGE[0], self.LANGUAGE[1], lang)
+
+    def setBaseLanguage(self, lang):
+        self.update(self.BASE_LANGUAGE[0], self.BASE_LANGUAGE[1], lang)
+
+    def setLearningLanguage(self, lang):
+        self.update(self.LEARNING_LANGUAGE[0], self.LEARNING_LANGUAGE[1], lang)
+        
+    def setSayOut(self, enabled):
+        self.update(self.SAY_OUT[0], self.SAY_OUT[1], enabled)
+
+    def setShowNote(self, enabled):
+        self.update(self.SHOW_NOTE[0], self.SHOW_NOTE[1], enabled)
+
+    def setShowPattern(self, enabled):
+        self.update(self.SHOW_PATTERN[0], self.SHOW_PATTERN[1], enabled)
+
 
 
 def xzip(a, b, string_filler=""):

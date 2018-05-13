@@ -33,7 +33,7 @@ class GuiPrala(QMainWindow):
     BASIC_ITALIC = False
     BASIC_BOLD = False
 
-    def __init__(self, file_name="", part_of_speech_filter="", extra_filter=""):
+    def __init__(self, file_name="", part_of_speech_filter="", extra_filter="", setup=None):
 
         super().__init__()
 
@@ -101,8 +101,6 @@ class GuiPrala(QMainWindow):
         #
         # --- Window ---
         #
-        # read setup.ini (version, name)
-        setup = getSetupIni()
         self.setWindowTitle( setup['title'] + " - " + setup['version'])
         self.resize(GuiPrala.WIDTH, GuiPrala.HEIGHT)
         self.setFixedHeight(GuiPrala.HEIGHT)        
@@ -753,7 +751,9 @@ def main():
     #
     # Handle parameters
     #
-    parser=OptionParser("%prog [dict_file_name] [-p part_of_speech_filter] [-f extra_filter]")
+    setup = getSetupIni()
+
+    parser=OptionParser("%prog [dict_file_name] [-p PART_OF_SPEECH_FILTER] [-f EXTRA_FILTER]", version="%prog " + setup['version'])
     parser.add_option("--pos", "-p", dest="part_of_speech_filter", default="", type="string", help="specify part of speech")
     parser.add_option("--filter", "-f", dest="extra_filter", default="", type="string", help="specify extra filter")
     (options, args) = parser.parse_args()
@@ -765,14 +765,17 @@ def main():
     #
     # parameters for the app
     #
-    file_name = args[0]
+    if len(args) == 1:
+        file_name = args[0]
+    else:
+        file_name = ""
     part_of_speech_filter = options.part_of_speech_filter
     extra_filter = options.extra_filter
 
     #
     # Configuration file
     #
-    config_ini = ConfigIni.getInstance()
+    #config_ini = ConfigIni.getInstance()
 
     #
     # Application
@@ -782,6 +785,7 @@ def main():
         file_name=file_name, 
         part_of_speech_filter=part_of_speech_filter, 
         extra_filter=extra_filter, 
+        setup=setup
         )
     sys.exit(app.exec_())
     

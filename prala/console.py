@@ -5,9 +5,10 @@ from pkg_resources import resource_string
 from iso639 import to_name
 from optparse import OptionParser
 
+from prala.common.common import getSetupIni
 from prala.core import FilteredDictionary
 from prala.core import Record
-from prala.accessories import Property, getConfigIni
+from prala.accessories import Property, ConfigIni
 from prala.exceptions import EmptyDictionaryError
 from prala.exceptions import NoDictionaryError
 
@@ -43,12 +44,17 @@ class ConsolePrala(object):
     TEMPLATE_DICT_FILE_NAME="template.dict"
 #    INI_FILE_NAME="config.ini"
 
-    def __init__( self, file_name, base_language, learning_language, part_of_speech_filter="", extra_filter="", say_out=True, show_pattern=True, show_note=True ):
+    def __init__( self, file_name, part_of_speech_filter="", extra_filter="" ):
+
+        config_ini = ConfigIni.getInstance()
+        language=config_ini.getLanguage()  
+        base_language=to_name(config_ini.getBaseLanguage()).lower()
+        learning_language=to_name(config_ini.getLearningLanguage()).lower()
+        self.say_out=config_ini.isSayOut(), 
+        self.show_pattern=config_ini.isShowPattern(), 
+        self.show_note=config_ini.isShowNote()
 
         self.myFilteredDictionary=FilteredDictionary(file_name, base_language, learning_language, part_of_speech_filter, extra_filter) 
-        self.say_out=say_out
-        self.show_pattern=show_pattern
-        self.show_note=show_note
 
     def round(self, wrong_record=None):
         """
@@ -219,22 +225,28 @@ class ConsolePrala(object):
 
 def main():
 
-    par = getConfigIni()
- 
+    # initialize OptionParser
+    setup = getSetupIni()
+    parser=OptionParser("%prog dict_file_name [-p part_of_speech_filter] [-f extra_filter]", version="%prog " + setup['version'])
+    parser.add_option("--pos", "-p", dest="part_of_speech_filter", default="", type="string", help="specify part of speech")
+    parser.add_option("--filter", "-f", dest="extra_filter", default="", type="string", help="specify extra filter")
+    (options, args) = parser.parse_args()
+
+    # if the number of parameters different than 1 => dictionary's name
+    if len(args) != 1:   
+        parser.error("Incorrect number of arguments")
+        exit()
+
+    # dictionary's name
+    file_name = args[0]
+
     # the reason of using it "with" is to get back the default coursor color at the end
     try:
         with ConsolePrala(
-            par['file_name'], 
-            par['base_language'], 
-            par['learning_language'], 
-            part_of_speech_filter=par['part_of_speech_filter'], 
-            extra_filter=par['extra_filter'], 
-            say_out=par['say_out'], 
-            show_pattern=par['show_pattern'], 
-            show_note=par['show_note']
-
+            file_name, 
+            part_of_speech_filter=options.part_of_speech_filter, 
+            extra_filter=options.extra_filter,             
         ) as cp:
-
             wrong_record=None
             while True:
                 wrong_record=cp.round(wrong_record)

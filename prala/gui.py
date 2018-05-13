@@ -12,7 +12,7 @@ from threading import Thread
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QFrame, QMainWindow,
     QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QTextEdit,
-    QDesktopWidget, QSizePolicy, QAction, QToolButton, QMessageBox)   
+    QDesktopWidget, QSizePolicy, QAction, QToolButton, QMessageBox, QFileDialog)   
 from PyQt5.QtGui import QPainter, QFont, QColor, QIcon, QPixmap, QPalette
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QSize, QEvent
@@ -38,34 +38,25 @@ class GuiPrala(QMainWindow):
         super().__init__()
 
         self.file_name = file_name
-        #self.base_language = base_language
-        #self.learning_language = learning_language
         self.part_of_speech_filter = part_of_speech_filter
         self.extra_filter = extra_filter
-        #self.say_out = say_out
-        #self.show_pattern = show_pattern
-        #self.show_note = show_note
-
-        #self.asking_widget = AskingWidget( self, file_name, base_language, learning_language, part_of_speech_filter, extra_filter, say_out, show_pattern, show_note)
-        #self.setCentralWidget( self.asking_widget )
 
         #
         # --- Tool Bar --- 
         #
  
         # OPEN
-        open_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "open-tool.png"))) ), _("TOOLBAR_OPEN"), self)
+        open_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "open-tool.png"))) ), _("MAIN.TOOLBAR.OPEN"), self)
         open_action.setShortcut("Ctrl+O")
-        open_action.triggered.connect(QApplication.instance().quit)
+        open_action.triggered.connect(self.open_dict_file)
 
         # START
-        self.start_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "start-tool.png"))) ), _("TOOLBAR_START"), self)
+        self.start_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "start-tool.png"))) ), _("MAIN.TOOLBAR.START"), self)
         self.start_action.setShortcut("Ctrl+S")
-        #start.setStatusTip(_("TIP_TOOLBAR_START"))
         self.start_action.triggered.connect(self.changeStartEnability)
 
         # SAY OUT
-        self.sayout_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "say-tool.png"))) ), _("TOOLBAR_SAYOUT"), self)
+        self.sayout_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "say-tool.png"))) ), _("MAIN.TOOLBAR.SAYOUT"), self)
         self.sayout_action.setShortcut("Ctrl+T")
         self.sayout_action.triggered.connect(self.sayOut)
 
@@ -73,15 +64,13 @@ class GuiPrala(QMainWindow):
         spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # QUIT
-        quit_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "quit-tool.png"))) ), _("TOOLBAR_QUIT"), self)
+        quit_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "quit-tool.png"))) ), _("MAIN.TOOLBAR.QUIT"), self)
         quit_action.setShortcut("Ctrl+Q")
-        #quit.setStatusTip(_("TIP_TOOLBAR_QUIT"))
         quit_action.triggered.connect(QApplication.instance().quit)
 
         # ENABLE TO SAY
         enable_to_say_icon = QIcon()
         enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-on-tool.png"))) ), QIcon.Normal, QIcon.On )
-#        enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-on-tool.png"))) ), QIcon.Active)
         enable_to_say_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-say-off-tool.png"))) ), QIcon.Normal, QIcon.Off)
         self.enable_to_say_button = QToolButton()
         self.enable_to_say_button.setFocusPolicy(Qt.NoFocus)
@@ -146,23 +135,38 @@ class GuiPrala(QMainWindow):
             self.setCentralWidget( self.asking_widget )
             self.start_action.setEnabled(False)
             self.sayout_action.setEnabled(True)
+            self.asking_widget.answer_field.setFirstFocus()
 
         except EmptyDictionaryError as e:
-            QMessageBox.critical(self, _("ERROR"), _("ERROR_DICTIONARY_IS_EMPTY") + "\n" + f.dict_file_name)
+            QMessageBox.critical(self, _("ERROR"), _("ERROR_MESSAGE.DICTIONARY_IS_EMPTY") + ":\n" + e.dict_file_name)
         except NoDictionaryError as f:
-            QMessageBox.critical(self, _("ERROR"), _("ERROR_DICTIONARY_NOT_FOUND") + "\n" + f.dict_file_name)
+            QMessageBox.critical(self, _("ERROR"), _("ERROR_MESSAGE.DICTIONARY_NOT_FOUND") + ":\n" + f.dict_file_name)
 
 
     def sayOut(self):
 
         if self.asking_widget.ok_button.status == OKButton.STATUS.ACCEPT:
-            Thread(target = self.asking_wFilteredDictionaryidget.record.say_out_base, args = ()).start()
+            Thread(target = self.asking_widget.record.say_out_base, args = ()).start()
         else:
             Thread(target = self.asking_widget.record.say_out_learning, args = ()).start()
 
     def changeEnableToSay(self, checked):
         ConfigIni.getInstance().setSayOut( checked )
         self.say_out = checked
+
+    def open_dict_file(self):
+        options = QFileDialog.Options()
+        #options |= QFileDialog.DontUseNativeDialog
+        fileName, sel = QFileDialog.getOpenFileName(
+            self,
+            _("FILE_SELECTOR.TITLE.SELECT_DICT"), 
+            "",
+            "Dictionary Files (*" + FilteredDictionary.DICT_EXT + ")", 
+            options=options)
+
+        if fileName:
+            self.file_name = fileName
+            self.setStartEnable()
 
 class AskingWidget(QWidget):
     FIELD_DISTANCE = 3

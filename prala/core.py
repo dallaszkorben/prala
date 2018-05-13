@@ -4,13 +4,14 @@ import random
 import numpy as np
 import hashlib
 import re
+import os
 from time import sleep
 from prala.accessories import Enum
 from prala.exceptions import EmptyDictionaryError
 from prala.exceptions import NoDictionaryError
 
 class FilteredDictionary(object):
-    DICT_EXT="dict"
+    DICT_EXT=".dict"
     RECORD_SPLITTER=":"
     WORD_SPLITTER=","
 
@@ -44,8 +45,14 @@ class FilteredDictionary(object):
 
         self.base_language=base_language
         self.learning_language=learning_language
-        self.dict_file_name=file_name+"." + self.__class__.DICT_EXT
-        self.stat_file_name=file_name
+        
+        # if it does not ended to .dict, I append .dict to it
+        name, ext = os.path.splitext( file_name )
+        if ext != self.__class__.DICT_EXT:
+            ext += self.__class__.DICT_EXT
+
+        self.dict_file_name = name + ext
+        self.stat_file_name = name
 
         #
         # read, parse and filter the necesarry words
@@ -303,7 +310,7 @@ class Record(object):
         engine.setProperty('voice', self.base_language)		#voice id
         #engine.setProperty('rate', 150)
         #engine.setProperty('volume', 1)
-
+    
         #while engine.isBusy():
         #    sleep(0.5)
 

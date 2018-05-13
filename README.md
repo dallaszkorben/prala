@@ -5,7 +5,7 @@ The aim of this project is to produce a software which can be used by a **langua
 <table border="0">
 <tr>
 <td><img src='https://github.com/dallaszkorben/prala/blob/master/wiki/console-wrong-answer.png' width='400'>
-<td><img src='https://github.com/dallaszkorben/prala/blob/master/wiki/gui-good-answer-0.1.3.png' width='400'>
+<td><img src='https://github.com/dallaszkorben/prala/blob/master/wiki/gui-good-answer.png' width='400'>
 <tr/>
 <tr>
 <td>Console<br>

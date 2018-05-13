@@ -9,11 +9,6 @@ import configparser
 from PyQt5.QtWidgets import QAbstractButton, QSizePolicy, QPushButton
 from PyQt5.QtGui import QPainter
 from PyQt5.QtCore import QSize
- 
-
-
-
-
 
 LOCALES_DIR='locales'
 PACKAGE_NAME='prala'    
@@ -153,13 +148,6 @@ class Property(object):
 
 class ConfigIni( Property ):
     INI_FILE_NAME="config.ini"
-
-    DEFAULT_LANGUAGE="en"
-    DEFAULT_BASE_LANGUAGE="en"
-    DEFAULT_LEARNING_LANGUAGE="sv"
-    DEFAULT_SAY_OUT=True
-    DEFAULT_SHOW_PATTERN=True
-    DEFAULT_SHOW_NOTE=True
 
     # (section, key, default)
     LANGUAGE = ("languages", "language", "en")
@@ -323,13 +311,13 @@ def getConfigIni():
     part_of_speech_filter = options.part_of_speech_filter
     extra_filter = options.extra_filter
 
-    property=Property.get_instance()
-    language=property.get('languages', 'language', DEFAULT_LANGUAGE)    
-    base_language=to_name(property.get('languages', 'base_language', DEFAULT_BASE_LANGUAGE)).lower()
-    learning_language=to_name(property.get('languages', 'learning_language', DEFAULT_LEARNING_LANGUAGE)).lower()
-    say_out=property.get_boolean('general', 'say_out', DEFAULT_SAY_OUT)    
-    show_pattern=property.get_boolean('general', 'show_pattern', DEFAULT_SHOW_PATTERN)    
-    show_note=property.get_boolean('general', 'show_note', DEFAULT_SHOW_NOTE)
+    config_ini = ConfigIni.getInstance()
+    language=config_ini.getLanguage()  
+    base_language=to_name(config_ini.getBaseLanguage()).lower()
+    learning_language=to_name(config_ini.getLearningLanguage()).lower()
+    say_out=config_ini.isSayOut()    
+    show_pattern=config_ini.isShowPattern()    
+    show_note=config_ini.isShowNote()
 
     return dict([ 
         ('file_name', file_name), 

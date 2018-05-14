@@ -1,6 +1,6 @@
 import sys
 from prala.common.common import getSetupIni
-from prala.accessories import (_, Enum, PicButton, ConfigIni, getConfigIni, 
+from prala.accessories import (_, Enum, PicButton, ConfigIni, 
     Property)
 from prala.core import FilteredDictionary
 from prala.core import Record
@@ -78,21 +78,46 @@ class GuiPrala(QMainWindow):
         self.enable_to_say_button.setCheckable(True)
         self.enable_to_say_button.toggled.connect(self.changeEnableToSay)
 
+        # ENABLE TO SHOW NOTE
+        enable_to_show_note_icon = QIcon()
+        enable_to_show_note_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-show-note-on-tool.png"))) ), QIcon.Normal, QIcon.On )
+        enable_to_show_note_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-show-note-off-tool.png"))) ), QIcon.Normal, QIcon.Off)
+        self.enable_to_show_note_button = QToolButton()
+        self.enable_to_show_note_button.setFocusPolicy(Qt.NoFocus)
+        self.enable_to_show_note_button.setIcon(enable_to_show_note_icon)
+        self.enable_to_show_note_button.setCheckable(True)
+        self.enable_to_show_note_button.toggled.connect(self.changeEnableToShowNote)        
+
+        # ENABLE TO SHOW PATTERN
+        enable_to_show_pattern_icon = QIcon()
+        enable_to_show_pattern_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-show-pattern-on-tool.png"))) ), QIcon.Normal, QIcon.On )
+        enable_to_show_pattern_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-show-pattern-off-tool.png"))) ), QIcon.Normal, QIcon.Off)
+        self.enable_to_show_pattern_button = QToolButton()
+        self.enable_to_show_pattern_button.setFocusPolicy(Qt.NoFocus)
+        self.enable_to_show_pattern_button.setIcon(enable_to_show_pattern_icon)
+        self.enable_to_show_pattern_button.setCheckable(True)
+        self.enable_to_show_pattern_button.toggled.connect(self.changeEnableToShowPattern)        
+
+
         toolbar = self.addToolBar('My tool')
         toolbar.addAction(open_action)
         toolbar.addSeparator()
         toolbar.addAction(self.start_action)
         toolbar.addAction(self.sayout_action)
+        toolbar.addSeparator()
         toolbar.addWidget(self.enable_to_say_button)
+        toolbar.addWidget(self.enable_to_show_note_button)
+        toolbar.addWidget(self.enable_to_show_pattern_button)
         toolbar.addSeparator()
         toolbar.addWidget(spacer)
         toolbar.addAction(quit_action)
 
         # Default settings
-
         self.setStartEnable()
         self.enable_to_say_button.setChecked(ConfigIni.getInstance().isSayOut())
-
+        self.enable_to_show_note_button.setChecked(ConfigIni.getInstance().isShowNote())
+        self.enable_to_show_pattern_button.setChecked(ConfigIni.getInstance().isShowPattern())
+        
         #
         # --- Status Bar ---
         #
@@ -150,7 +175,18 @@ class GuiPrala(QMainWindow):
 
     def changeEnableToSay(self, checked):
         ConfigIni.getInstance().setSayOut( checked )
-        self.say_out = checked
+        #self.say_out = checked
+
+    def changeEnableToShowNote(self, checked):
+        ConfigIni.getInstance().setShowNote( checked )
+        #self.show_note = checked
+        if( not checked ):
+            self.asking_widget.note_field.setText("")
+     
+
+    def changeEnableToShowPattern(self, checked):
+        ConfigIni.getInstance().setShowPattern( checked )
+        #self.say_out = checked           
 
     def open_dict_file(self):
         options = QFileDialog.Options()
@@ -303,7 +339,7 @@ class AskingWidget(QWidget):
         config_ini = ConfigIni.getInstance()
 
         # note field
-        if config_ini.isShowNote:
+        if config_ini.isShowNote():
             self.note_field.setText(self.record.note)
 
         # answer
@@ -370,7 +406,7 @@ class OKButton(PicButton):
             self.status = OKButton.STATUS.NEXT
             
             # say out the right answer in thread          
-            if self.asking_object.main_gui.say_out:
+            if ConfigIni.getInstance().isSayOut():
                 Thread(target = self.asking_object.record.say_out_learning, args = ()).start()
 
         elif self.status == OKButton.STATUS.NEXT:

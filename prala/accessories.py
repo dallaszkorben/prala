@@ -272,3 +272,7 @@ class PicButton(QPushButton):
 
     #def sizeHint(self):        
     #    return QSize(100,38)
+
+def removeControlChars( string ):
+    mpa = dict.fromkeys(range(32))
+    return string.translate(mpa)

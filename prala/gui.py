@@ -1,6 +1,6 @@
 import sys
 from prala.common.common import getSetupIni
-from prala.accessories import (_, Enum, PicButton, ConfigIni, 
+from prala.accessories import (_, Enum, PicButton, ConfigIni, removeControlChars,
     Property)
 from prala.core import FilteredDictionary
 from prala.core import Record
@@ -9,17 +9,19 @@ from prala.exceptions import NoDictionaryError
 
 from threading import Thread
 
-from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QFrame, QMainWindow,
     QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QTextEdit,
-    QDesktopWidget, QSizePolicy, QAction, QToolButton, QMessageBox, QFileDialog)   
+    QDesktopWidget, QSizePolicy, QAction, QToolButton, QMessageBox, QFileDialog,
+    QComboBox)   
 from PyQt5.QtGui import QPainter, QFont, QColor, QIcon, QPixmap, QPalette
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QSize, QEvent
 
+import pyttsx3
 from pkg_resources import resource_string, resource_filename
 from time import sleep
 from optparse import OptionParser
+import re
 
 class GuiPrala(QMainWindow):
 
@@ -99,6 +101,31 @@ class GuiPrala(QMainWindow):
         self.enable_to_show_pattern_button.toggled.connect(self.changeEnableToShowPattern)        
 
 
+        # BASE LANGUAGE DROPDOWN
+        self.base_language_dropdown = QComboBox(self)
+        engine = pyttsx3.init()
+        voices = engine.getProperty('voices')
+        #flag = QIcon( resource_filename(__name__, "/".join(("images", "open-tool.png"))) )
+        #[base_language_dropdown.addItem( flag, removeControlChars( i.languages[0].decode("utf-8") ) ) for i in voices]
+        [self.base_language_dropdown.addItem(  removeControlChars( i.languages[0].decode("utf-8") ), Qt.Sunday ) for i in voices]
+        self.base_language_dropdown.activated[str].connect(self.changeBaseLanguage)
+
+        # LEARNING LANGUAGE DROPDOWN
+        self.learning_language_dropdown = QComboBox(self)
+        #flag = QIcon( resource_filename(__name__, "/".join(("images", "open-tool.png"))) )
+        #[base_language_dropdown.addItem( flag, removeControlChars( i.languages[0].decode("utf-8") ) ) for i in voices]
+        [self.learning_language_dropdown.addItem(  removeControlChars( i.languages[0].decode("utf-8") ), Qt.Sunday ) for i in voices]
+        self.learning_language_dropdown.activated[str].connect(self.changeLearningLanguage)
+
+        # Default settings
+        config_ini = ConfigIni.getInstance()
+        self.setStartEnable()
+        self.enable_to_say_button.setChecked(config_ini.isSayOut())
+        self.enable_to_show_note_button.setChecked(config_ini.isShowNote())
+        self.enable_to_show_pattern_button.setChecked(config_ini.isShowPattern())
+        self.base_language_dropdown.setCurrentText( config_ini.getBaseLanguage())
+        self.learning_language_dropdown.setCurrentText( config_ini.getLearningLanguage())
+
         toolbar = self.addToolBar('My tool')
         toolbar.addAction(open_action)
         toolbar.addSeparator()
@@ -108,15 +135,12 @@ class GuiPrala(QMainWindow):
         toolbar.addWidget(self.enable_to_say_button)
         toolbar.addWidget(self.enable_to_show_note_button)
         toolbar.addWidget(self.enable_to_show_pattern_button)
+        toolbar.addWidget(self.base_language_dropdown)
+        toolbar.addWidget(self.learning_language_dropdown)
         toolbar.addSeparator()
         toolbar.addWidget(spacer)
         toolbar.addAction(quit_action)
 
-        # Default settings
-        self.setStartEnable()
-        self.enable_to_say_button.setChecked(ConfigIni.getInstance().isSayOut())
-        self.enable_to_show_note_button.setChecked(ConfigIni.getInstance().isShowNote())
-        self.enable_to_show_pattern_button.setChecked(ConfigIni.getInstance().isShowPattern())
         
         #
         # --- Status Bar ---
@@ -201,6 +225,14 @@ class GuiPrala(QMainWindow):
         if fileName:
             self.file_name = fileName
             self.setStartEnable()
+
+    def changeBaseLanguage( self, text ):
+        ConfigIni.getInstance().setBaseLanguage(text)
+        self.setStartEnable()
+
+    def changeLearningLanguage( self, text ):
+        ConfigIni.getInstance().setLearningLanguage(text)
+        self.setStartEnable()        
 
 class AskingWidget(QWidget):
     FIELD_DISTANCE = 3
@@ -761,9 +793,9 @@ class ResultLamp(QLabel):
     def __init__(self, failed_position_list=None):
         QLabel.__init__(self)
 
-        self.setSizePolicy(QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Minimum,
-            QtWidgets.QSizePolicy.Minimum))
+        self.setSizePolicy(QSizePolicy(
+            QSizePolicy.Minimum,
+            QSizePolicy.Minimum))
 
         self.set_result(failed_position_list)
 

@@ -8,9 +8,9 @@ from prala.exceptions import EmptyDictionaryError
 from prala.exceptions import NoDictionaryError
 
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QFrame, QMainWindow,
-    QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QTextEdit,
-    QDesktopWidget, QSizePolicy, QAction, QToolButton, QMessageBox, QFileDialog,
-    QComboBox)   
+    QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QVBoxLayout,
+    QTextEdit, QDesktopWidget, QSizePolicy, QAction, QToolButton, QMessageBox, 
+    QFileDialog, QComboBox, QToolBar)   
 from PyQt5.QtGui import QPainter, QFont, QColor, QIcon, QPixmap, QPalette
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QSize, QEvent
@@ -126,7 +126,7 @@ class GuiPrala(QMainWindow):
         self.extra_filter_dropdown = QComboBox(self)
         self.extra_filter_dropdown.setFixedWidth(100)
         self.extra_filter_dropdown.setFocusPolicy(Qt.NoFocus)
-        self.extra_filter_dropdown.activated[str].connect(self.changeExtraFilter)        
+        self.extra_filter_dropdown.activated[str].connect(self.changeExtraFilter)    
 
         #
         # Default settings
@@ -142,34 +142,45 @@ class GuiPrala(QMainWindow):
         self.base_language_dropdown.setCurrentText( config_ini.getBaseLanguage())
         self.learning_language_dropdown.setCurrentText( config_ini.getLearningLanguage())
 
-        toolbar = self.addToolBar('My tool')
-        toolbar.addAction(open_action)
-        toolbar.addSeparator()
-        toolbar.addAction(self.start_action)
-        toolbar.addAction(self.sayout_action)
-        toolbar.addSeparator()
-        toolbar.addWidget(self.enable_to_say_button)
-        toolbar.addWidget(self.enable_to_show_note_button)
-        toolbar.addWidget(self.enable_to_show_pattern_button)
-        toolbar.addWidget(self.base_language_dropdown)
-        toolbar.addWidget(self.learning_language_dropdown)
-        toolbar.addWidget(self.pos_filter_dropdown)
-        toolbar.addWidget(self.extra_filter_dropdown)
-        toolbar.addSeparator()
-        toolbar.addWidget(spacer)
-        toolbar.addAction(quit_action)
+        # Selector Toolbar
+        selectorToolbar = QToolBar("Selector toolbar") 
+        self.addToolBar(Qt.LeftToolBarArea, selectorToolbar)
+        selectorToolbar.setMovable(False)
+        selectorToolbar.addWidget(self.pos_filter_dropdown)
+        selectorToolbar.addWidget(self.extra_filter_dropdown)
+        #selectorToolbar.addSeparator()
+        #selectorToolbar.addWidget(self.base_language_dropdown)
+        #selectorToolbar.addWidget(self.learning_language_dropdown)
+
+        # Main Toolbar
+        mainToolbar = self.addToolBar('Main toolbar' )
+        mainToolbar.addAction(open_action)
+        mainToolbar.addSeparator()
+        mainToolbar.addAction(self.start_action)
+        mainToolbar.addAction(self.sayout_action)
+        mainToolbar.addSeparator()
+        mainToolbar.addWidget(self.enable_to_say_button)
+        mainToolbar.addWidget(self.enable_to_show_note_button)
+        mainToolbar.addWidget(self.enable_to_show_pattern_button)
+        mainToolbar.addWidget(self.base_language_dropdown)
+        mainToolbar.addWidget(self.learning_language_dropdown)
+        #mainToolbar.addWidget(self.pos_filter_dropdown)
+        #mainToolbar.addWidget(self.extra_filter_dropdown)
+        mainToolbar.addSeparator()
+        mainToolbar.addWidget(spacer)
+        mainToolbar.addAction(quit_action)
         
         #
         # --- Status Bar ---
         #
-        self.statusBar().showMessage("")
+        #self.statusBar().showMessage("")
 
         #
         # --- Window ---
         #
         self.setWindowTitle( setup['title'] + " - " + setup['version'])
         self.resize(GuiPrala.WIDTH, GuiPrala.HEIGHT)
-        self.setFixedHeight(GuiPrala.HEIGHT)        
+        #self.setFixedHeight(GuiPrala.HEIGHT)        
         #self.setFixedWidth(GuiPrala.WIDTH)
         self.center()
         self.show()
@@ -185,7 +196,7 @@ class GuiPrala(QMainWindow):
         """
         The cases when this method is called:
         - In the constructor
-        - Open a new dict file clicking on the Open toolbar
+        mainT Open a new dict file clicking on the Open toolbar
         - When the selected element in the filter dropdown changed
         """
         try:
@@ -206,6 +217,9 @@ class GuiPrala(QMainWindow):
 
             # Disable Say out
             self.sayout_action.setEnabled(False)
+
+            # Clear the StatusBar
+            self.statusBar().showMessage("")
 
             # Fill up the POS Filter selectors
             self.pos_filter_dropdown.clear()
@@ -277,12 +291,16 @@ class GuiPrala(QMainWindow):
 
     def changeBaseLanguage( self, text ):
         ConfigIni.getInstance().setBaseLanguage(text)
-        self.asking_canvas.record.setBaseLanguage(text)
+        #if there is NO recor yet
+        if not self.start_action.isEnabled():
+            self.asking_canvas.record.setBaseLanguage(text)
         self.asking_canvas.myFilteredDictionary.setBaseLanguage(text)
 
     def changeLearningLanguage( self, text ):
         ConfigIni.getInstance().setLearningLanguage(text)
-        self.asking_canvas.record.setLearningLanguage(text)
+        #if there is NO recor yet
+        if not self.start_action.isEnabled():
+            self.asking_canvas.record.setLearningLanguage(text)
         self.asking_canvas.myFilteredDictionary.setLearningLanguage(text)
 
     def changePOSFilter( self, filter ):

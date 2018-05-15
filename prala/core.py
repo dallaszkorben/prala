@@ -55,13 +55,25 @@ class FilteredDictionary(object):
         self.stat_file_name = name
 
         #
+        # collects POS list and extra filter list
+        #
+        self.pos_filter_list = [""]
+        self.extra_filter_list = [""]
+
+        #
         # read, parse and filter the necesarry words
         #
         # output: word_dict
         try:
+
             with open( self.dict_file_name ) as f:
+
+                #
+                # collect words by filters
+                #
                 self.word_dict={}
                 for line in f:
+                    
                     #id for the line
                     ln=hashlib.md5(line.encode()).hexdigest()                    
 
@@ -69,6 +81,16 @@ class FilteredDictionary(object):
                     element_list=line.strip().split(self.__class__.RECORD_SPLITTER)
                     #fill up the list if it shorter
                     element_list= (element_list + [''] * type(self).DICT_POS.size())[:type(self).DICT_POS.size()]
+
+                    # collects POS filters into list
+                    # collects EXTRA filters into list
+                    pf = element_list[type(self).DICT_POS.POS_POS_FILTER].lower()
+                    if pf not in self.pos_filter_list:
+                        self.pos_filter_list.append( pf )
+                    
+                    ef = element_list[type(self).DICT_POS.POS_EXTRA_FILTER].lower()
+                    if ef not in self.extra_filter_list:
+                        self.extra_filter_list.append( ef )
 
                     # filters the result by part_of_speech_filter and extra_filter
                     if (len(part_of_speach_filter) == 0 or element_list[type(self).DICT_POS.POS_POS_FILTER].lower() == part_of_speach_filter.lower()) and (len(extra_filter) == 0 or re.compile(extra_filter).search( element_list[type(self).DICT_POS.POS_EXTRA_FILTER] ) != None ):
@@ -93,6 +115,7 @@ class FilteredDictionary(object):
         except FileNotFoundError as e:
             raise NoDictionaryError(e)
 
+        
         #now in the word_dict found all filtered words by line
 
         with shelve.open(self.stat_file_name, writeback=True) as db:
@@ -253,6 +276,18 @@ class FilteredDictionary(object):
         full_list=[ i for k, v in self.recent_stat_list.items() for i in v]
         return(len(full_list), sum(full_list), max(0, len(self.recent_stat_list)-sum(full_list)))
 
+    def getPOSFilterList(self):
+        return self.pos_filter_list
+
+    def getExtraFilterList(self):
+        return self.extra_filter_list
+
+    def setBaseLanguage(self, language):
+        self.base_language = language
+
+    def setLearningLanguage(self, language):
+        self.learning_language = language        
+
 class Record(object):
 
     def __init__(self, base_language, learning_language, word_id, word, recent_stat):
@@ -330,6 +365,11 @@ class Record(object):
         [engine.say(i) for i in self.learning_words]
         engine.runAndWait()
 
+    def setBaseLanguage(self, language):
+        self.base_language = language
+
+    def setLearningLanguage(self, language):
+        self.learning_language = language
 
 #if __name__ == "__main__":
     #myFiteredDictionary=FiteredDictionary()

@@ -7,8 +7,6 @@ from prala.core import Record
 from prala.exceptions import EmptyDictionaryError
 from prala.exceptions import NoDictionaryError
 
-from threading import Thread
-
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QFrame, QMainWindow,
     QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QTextEdit,
     QDesktopWidget, QSizePolicy, QAction, QToolButton, QMessageBox, QFileDialog,
@@ -18,6 +16,8 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QSize, QEvent
 
 import pyttsx3
+import functools
+from threading import Thread
 from pkg_resources import resource_string, resource_filename
 from time import sleep
 from optparse import OptionParser
@@ -39,9 +39,9 @@ class GuiPrala(QMainWindow):
 
         super().__init__()
 
-        self.file_name = file_name
-        self.part_of_speech_filter = part_of_speech_filter
-        self.extra_filter = extra_filter
+#        self.file_name = file_name
+#        self.part_of_speech_filter = part_of_speech_filter
+#        self.extra_filter = extra_filter
 
         #
         # --- Tool Bar --- 
@@ -55,7 +55,7 @@ class GuiPrala(QMainWindow):
         # START
         self.start_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "start-tool.png"))) ), _("MAIN.TOOLBAR.START"), self)
         self.start_action.setShortcut("Ctrl+S")
-        self.start_action.triggered.connect(self.changeStartEnability)
+        self.start_action.triggered.connect( self.startClicked )
 
         # SAY OUT
         self.sayout_action = QAction(QIcon( resource_filename(__name__, "/".join(("images", "say-tool.png"))) ), _("MAIN.TOOLBAR.SAYOUT"), self)
@@ -100,26 +100,42 @@ class GuiPrala(QMainWindow):
         self.enable_to_show_pattern_button.setCheckable(True)
         self.enable_to_show_pattern_button.toggled.connect(self.changeEnableToShowPattern)        
 
-
         # BASE LANGUAGE DROPDOWN
         self.base_language_dropdown = QComboBox(self)
+        self.base_language_dropdown.setFocusPolicy(Qt.NoFocus)
         engine = pyttsx3.init()
         voices = engine.getProperty('voices')
         #flag = QIcon( resource_filename(__name__, "/".join(("images", "open-tool.png"))) )
         #[base_language_dropdown.addItem( flag, removeControlChars( i.languages[0].decode("utf-8") ) ) for i in voices]
-        [self.base_language_dropdown.addItem(  removeControlChars( i.languages[0].decode("utf-8") ), Qt.Sunday ) for i in voices]
+        [self.base_language_dropdown.addItem(  removeControlChars( i.languages[0].decode("utf-8") ) ) for i in voices]
         self.base_language_dropdown.activated[str].connect(self.changeBaseLanguage)
 
         # LEARNING LANGUAGE DROPDOWN
         self.learning_language_dropdown = QComboBox(self)
-        #flag = QIcon( resource_filename(__name__, "/".join(("images", "open-tool.png"))) )
-        #[base_language_dropdown.addItem( flag, removeControlChars( i.languages[0].decode("utf-8") ) ) for i in voices]
-        [self.learning_language_dropdown.addItem(  removeControlChars( i.languages[0].decode("utf-8") ), Qt.Sunday ) for i in voices]
+        self.learning_language_dropdown.setFocusPolicy(Qt.NoFocus)
+        [self.learning_language_dropdown.addItem(  removeControlChars( i.languages[0].decode("utf-8") ) ) for i in voices]
         self.learning_language_dropdown.activated[str].connect(self.changeLearningLanguage)
 
+        # POS FILTER DROPDOWN
+        self.pos_filter_dropdown = QComboBox(self)
+        self.pos_filter_dropdown.setFixedWidth(100)
+        self.pos_filter_dropdown.setFocusPolicy(Qt.NoFocus)
+        self.pos_filter_dropdown.activated[str].connect(self.changePOSFilter)
+
+        # EXTRA FILTER DROPDOWN
+        self.extra_filter_dropdown = QComboBox(self)
+        self.extra_filter_dropdown.setFixedWidth(100)
+        self.extra_filter_dropdown.setFocusPolicy(Qt.NoFocus)
+        self.extra_filter_dropdown.activated[str].connect(self.changeExtraFilter)        
+
+        #
         # Default settings
+        #
         config_ini = ConfigIni.getInstance()
-        self.setStartEnable()
+        self.sayout_action.setEnabled(False)
+        self.start_action.setEnabled(False)
+        self.createAskingCanvas( file_name, part_of_speech_filter, extra_filter, False )
+
         self.enable_to_say_button.setChecked(config_ini.isSayOut())
         self.enable_to_show_note_button.setChecked(config_ini.isShowNote())
         self.enable_to_show_pattern_button.setChecked(config_ini.isShowPattern())
@@ -137,10 +153,11 @@ class GuiPrala(QMainWindow):
         toolbar.addWidget(self.enable_to_show_pattern_button)
         toolbar.addWidget(self.base_language_dropdown)
         toolbar.addWidget(self.learning_language_dropdown)
+        toolbar.addWidget(self.pos_filter_dropdown)
+        toolbar.addWidget(self.extra_filter_dropdown)
         toolbar.addSeparator()
         toolbar.addWidget(spacer)
         toolbar.addAction(quit_action)
-
         
         #
         # --- Status Bar ---
@@ -164,55 +181,54 @@ class GuiPrala(QMainWindow):
         fg.moveCenter(cp)
         self.move(fg.topLeft())
 
-    def changeStartEnability(self):
-        if self.start_action.isEnabled():
-            self.setStartDisable()
-        else:
-            self.setStartEnable()
-
-    def setStartEnable(self):
-        self.start_action.setEnabled(True)        
-        self.setCentralWidget( None )
-        
-        self.sayout_action.setEnabled(False)
-
-    def setStartDisable(self):
+    def createAskingCanvas( self, file_name, pos_filter, extra_filter, enabledErrorMessage=True ):
+        """
+        The cases when this method is called:
+        - In the constructor
+        - Open a new dict file clicking on the Open toolbar
+        - When the selected element in the filter dropdown changed
+        """
         try:
-            self.asking_widget = AskingWidget( self )
-            self.setCentralWidget( self.asking_widget )
-            self.start_action.setEnabled(False)
-            self.sayout_action.setEnabled(True)
-            self.asking_widget.answer_field.setFirstFocus()
+
+            # try to open the file and create a selection by the filters
+            self.asking_canvas = AskingCanvas( self.statusBar(), file_name, pos_filter, extra_filter )
+
+            # if the file and the selectors was OK, then we can change them
+            self.file_name = file_name
+            self.part_of_speech_filter = pos_filter
+            self.extra_filter = extra_filter
+
+            # Hide CenterWidget
+            self.setCentralWidget( None )  
+
+            # Enable Start button
+            self.start_action.setEnabled(True)        
+
+            # Disable Say out
+            self.sayout_action.setEnabled(False)
+
+            # Fill up the POS Filter selectors
+            self.pos_filter_dropdown.clear()
+            self.pos_filter_dropdown.addItems(self.asking_canvas.myFilteredDictionary.getPOSFilterList())
+            self.pos_filter_dropdown.setCurrentText( self.part_of_speech_filter )
+
+            # Fill up the EXTRA Filter selectors
+            self.extra_filter_dropdown.clear()
+            self.extra_filter_dropdown.addItems(self.asking_canvas.myFilteredDictionary.getExtraFilterList())
+            self.extra_filter_dropdown.setCurrentText( self.extra_filter )
 
         except EmptyDictionaryError as e:
-            QMessageBox.critical(self, _("ERROR"), _("ERROR_MESSAGE.DICTIONARY_IS_EMPTY") + ":\n" + e.dict_file_name)
+            if enabledErrorMessage:
+                QMessageBox.critical(self, _("ERROR"), _("ERROR_MESSAGE.DICTIONARY_IS_EMPTY") + ":\n" + e.dict_file_name)
         except NoDictionaryError as f:
-            QMessageBox.critical(self, _("ERROR"), _("ERROR_MESSAGE.DICTIONARY_NOT_FOUND") + ":\n" + f.dict_file_name)
-
-
-    def sayOut(self):
-
-        if self.asking_widget.ok_button.status == OKButton.STATUS.ACCEPT:
-            Thread(target = self.asking_widget.record.say_out_base, args = ()).start()
-        else:
-            Thread(target = self.asking_widget.record.say_out_learning, args = ()).start()
-
-    def changeEnableToSay(self, checked):
-        ConfigIni.getInstance().setSayOut( checked )
-        #self.say_out = checked
-
-    def changeEnableToShowNote(self, checked):
-        ConfigIni.getInstance().setShowNote( checked )
-        #self.show_note = checked
-        if( not checked ):
-            self.asking_widget.note_field.setText("")
-     
-
-    def changeEnableToShowPattern(self, checked):
-        ConfigIni.getInstance().setShowPattern( checked )
-        #self.say_out = checked           
+            if enabledErrorMessage:
+                QMessageBox.critical(self, _("ERROR"), _("ERROR_MESSAGE.DICTIONARY_NOT_FOUND") + ":\n" + f.dict_file_name)
 
     def open_dict_file(self):
+        """
+        Opens the file selector dialog window for selecting a dict file.
+        Called when the Open button is clicked
+        """
         options = QFileDialog.Options()
         #options |= QFileDialog.DontUseNativeDialog
         fileName, sel = QFileDialog.getOpenFileName(
@@ -223,46 +239,77 @@ class GuiPrala(QMainWindow):
             options=options)
 
         if fileName:
-            self.file_name = fileName
-            self.setStartEnable()
+            self.createAskingCanvas(fileName, "", "")            
+
+    def startClicked(self):
+        """
+        -Asking WIdget shown in Central Widget
+        -Start button disabled
+        -Say out button enabled
+        -Answer field in focus
+        -Start the asking round
+        """
+        self.setCentralWidget( self.asking_canvas )
+        self.start_action.setEnabled(False)
+        self.sayout_action.setEnabled(True)
+        self.asking_canvas.answer_field.setFirstFocus()
+        self.asking_canvas.round()
+
+    def sayOut(self):
+        if self.asking_canvas.ok_button.status == OKButton.STATUS.ACCEPT:
+            Thread(target = self.asking_canvas.record.say_out_base, args = ()).start()
+        else:
+            Thread(target = self.asking_canvas.record.say_out_learning, args = ()).start()
+
+    def changeEnableToSay(self, checked):
+        ConfigIni.getInstance().setSayOut( checked )
+        #self.say_out = checked
+
+    def changeEnableToShowNote(self, checked):
+        ConfigIni.getInstance().setShowNote( checked )
+        #self.show_note = checked
+        if( not checked ):
+            self.asking_canvas.note_field.setText("")
+
+    def changeEnableToShowPattern(self, checked):
+        ConfigIni.getInstance().setShowPattern( checked )
+        #self.say_out = checked     
 
     def changeBaseLanguage( self, text ):
         ConfigIni.getInstance().setBaseLanguage(text)
-        self.setStartEnable()
+        self.asking_canvas.record.setBaseLanguage(text)
+        self.asking_canvas.myFilteredDictionary.setBaseLanguage(text)
 
     def changeLearningLanguage( self, text ):
         ConfigIni.getInstance().setLearningLanguage(text)
-        self.setStartEnable()        
+        self.asking_canvas.record.setLearningLanguage(text)
+        self.asking_canvas.myFilteredDictionary.setLearningLanguage(text)
 
-class AskingWidget(QWidget):
+    def changePOSFilter( self, filter ):
+        self.part_of_speech_filter = filter
+        self.createAskingCanvas(self.file_name, filter, self.extra_filter)
+
+    def changeExtraFilter( self, filter ):
+        self.extra_filter = filter
+        self.createAskingCanvas(self.file_name, self.part_of_speech_filter, filter )
+
+class AskingCanvas(QWidget):
     FIELD_DISTANCE = 3
     
-    def __init__(self, main_gui ):
+    def __init__(self, status_bar, file_name, part_of_speech_filter, extra_filter):
         super().__init__()
-        
-        self.main_gui = main_gui
 
         config_ini=ConfigIni.getInstance()
+        self.status_bar = status_bar
 
         self.myFilteredDictionary=FilteredDictionary(
-            main_gui.file_name, 
+            file_name, 
             config_ini.getBaseLanguage(), 
             config_ini.getLearningLanguage(), 
-            main_gui.part_of_speech_filter, 
-            main_gui.extra_filter
+            part_of_speech_filter,
+            extra_filter
         ) 
-
-        self.initUI()
-        
-        self.round()
-        
-    def initUI(self):        
-                
-        # --------------------
-        # Fields
-        # --------------------
-        #
-        
+       
         good_answer=[""]
 
         self.pos_field=TextLabel("", font="Courier New", size=10, color=Qt.gray)
@@ -271,10 +318,10 @@ class AskingWidget(QWidget):
 
         self.note_field=TextLabel("", font="Courier New", size=10, color=Qt.gray, bold=True, italic=True)
 
-        self.answer_field=AnswerField(good_answer, spacing=AskingWidget.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
+        self.answer_field=AnswerField(good_answer, spacing=AskingCanvas.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
         self.answer_field.disableText()
 
-        self.good_answer_field=ExpectedAnswerField(good_answer, spacing=AskingWidget.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.black, bg=self.palette().color(QPalette.Background))
+        self.good_answer_field=ExpectedAnswerField(good_answer, spacing=AskingCanvas.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.black, bg=self.palette().color(QPalette.Background))
 
         self.result_lamp=ResultLamp(failed_position_list=None)
 
@@ -333,7 +380,7 @@ class AskingWidget(QWidget):
 
 
         message = good + "/" + all + ("/" + remains if len(remains.strip()) > 0 else "") + " | " + success + " | " + points + " | " + sequence  
-        self.main_gui.statusBar().showMessage( message )
+        self.status_bar.showMessage( message )
         
     def round( self, wrong_record=None ):
         """

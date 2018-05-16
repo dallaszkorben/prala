@@ -286,7 +286,7 @@ class GuiPrala(QMainWindow):
     def changeEnableToShowNote(self, checked):
         ConfigIni.getInstance().setShowNote( checked )
         #self.show_note = checked
-        if( not checked ):
+        if( not checked and hasattr(self, 'asking_canvas')):
             self.asking_canvas.note_field.setText("")
 
     def changeEnableToShowPattern(self, checked):

@@ -122,7 +122,11 @@ class Property(object):
             result=self.parser.getboolean(section,key)
         except (configparser.NoSectionError, configparser.NoOptionError):
             self.update(section, key, default_value)
-            result=self.parser.get(section,key)
+            # It is strange how it works with get/getboolean
+            # Sometimes it reads boolean sometimes it reads string
+            # I could not find out what is the problem
+            #result=self.parser.get(section,key)
+            result=default_value
 
         return result
 
@@ -179,7 +183,7 @@ class ConfigIni( Property ):
 
     def isShowPattern(self):
         return self.getBoolean(self.SHOW_PATTERN[0], self.SHOW_PATTERN[1], self.SHOW_PATTERN[2])
-
+        
     def setLanguage(self, lang):
         self.update(self.LANGUAGE[0], self.LANGUAGE[1], lang)
 

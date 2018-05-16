@@ -107,13 +107,17 @@ class GuiPrala(QMainWindow):
         voices = engine.getProperty('voices')
         #flag = QIcon( resource_filename(__name__, "/".join(("images", "open-tool.png"))) )
         #[base_language_dropdown.addItem( flag, removeControlChars( i.languages[0].decode("utf-8") ) ) for i in voices]
-        [self.base_language_dropdown.addItem(  removeControlChars( i.languages[0].decode("utf-8") ) ) for i in voices]
+        # Eliminates the languages having longer name as 2
+        [self.base_language_dropdown.addItem(j) for j in [removeControlChars( i.languages[0].decode("utf-8")) for i in voices] if len(j) == 2]
+        #[self.base_language_dropdown.addItem(  removeControlChars( i.languages[0].decode("utf-8") ) ) for i in voices]
         self.base_language_dropdown.activated[str].connect(self.changeBaseLanguage)
 
         # LEARNING LANGUAGE DROPDOWN
         self.learning_language_dropdown = QComboBox(self)
         self.learning_language_dropdown.setFocusPolicy(Qt.NoFocus)
-        [self.learning_language_dropdown.addItem(  removeControlChars( i.languages[0].decode("utf-8") ) ) for i in voices]
+        #[self.learning_language_dropdown.addItem(  removeControlChars( i.languages[0].decode("utf-8") ) ) for i in voices]
+        # Eliminates the languages having longer name as 2
+        [self.learning_language_dropdown.addItem(j) for j in [removeControlChars( i.languages[0].decode("utf-8")) for i in voices] if len(j) == 2]
         self.learning_language_dropdown.activated[str].connect(self.changeLearningLanguage)
 
         # POS FILTER DROPDOWN

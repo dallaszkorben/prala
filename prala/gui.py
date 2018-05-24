@@ -800,8 +800,9 @@ class SingleFieldWithPattern(QWidget):
 
         # This field is the patter - just right under the input field - disabled - not focusable
         self.patternField = SingleField(word, parent=self, font=font, size=size, color=color, bg=Qt.white)
-        template=re.sub(r"[^, \!]", "_", self.word)
-        self.patternField.setText(template)
+        if ConfigIni.getInstance().isShowPattern():
+            template=re.sub(r"[^, \!]", "_", self.word)
+            self.patternField.setText(template)        
         self.patternField.setEnabled(False)
         self.patternField.move(0, 0)
         self.patternField.setFocusPolicy(Qt.NoFocus)
@@ -814,7 +815,6 @@ class SingleFieldWithPattern(QWidget):
         self.setMinimumSize(self.textField.minimumSize())
 
     def setFocus(self):
-        print("focus")
         self.textField.setFocus()
 
     def clear(self):

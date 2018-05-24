@@ -300,7 +300,7 @@ class GuiPrala(QMainWindow):
 
     def changeBaseLanguage( self, text ):
         ConfigIni.getInstance().setBaseLanguage(text)
-        #if there is NO recor yet
+        #if there is NO record yet
         if not self.start_action.isEnabled():
             self.asking_canvas.record.setBaseLanguage(text)
         self.asking_canvas.myFilteredDictionary.setBaseLanguage(text)
@@ -346,8 +346,6 @@ class AskingCanvas(QWidget):
         self.note_field=TextLabel("", font="Courier New", size=10, color=Qt.gray, bold=True, italic=True)
 
         self.answer_field=AnswerComplexField(good_answer, spacing=AskingCanvas.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
-#        self.answer_field=AnswerField(good_answer, spacing=AskingCanvas.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
-        self.answer_field.disableText()
 
         self.good_answer_field=ExpectedAnswerComplexField(good_answer, spacing=AskingCanvas.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.black, bg=self.palette().color(QPalette.Background))
 

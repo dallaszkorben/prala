@@ -340,10 +340,11 @@ class AskingCanvas(QWidget):
 
         self.note_field=TextLabel("", font="Courier New", size=10, color=Qt.gray, bold=True, italic=True)
 
-        self.answer_field=AnswerField(good_answer, spacing=AskingCanvas.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
+        self.answer_field=AnswerComplexField(good_answer, spacing=AskingCanvas.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
+#        self.answer_field=AnswerField(good_answer, spacing=AskingCanvas.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
         self.answer_field.disableText()
 
-        self.good_answer_field=ExpectedAnswerField(good_answer, spacing=AskingCanvas.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.black, bg=self.palette().color(QPalette.Background))
+        self.good_answer_field=ExpectedAnswerComplexField(good_answer, spacing=AskingCanvas.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.black, bg=self.palette().color(QPalette.Background))
 
         self.result_lamp=ResultLamp(failed_position_list=None)
 
@@ -569,19 +570,15 @@ class TextLabel(QLabel):
         super().setText(text)
 
 
-
-class AnswerField(QWidget):
-    """
-    This class represents fields in one row with specific characteristics of font.
-    The fields are for typing the answer for the question.
-    The fields are enabled for typing when the app expecting the answer for the question.
-    The fields are disabled for typing when the app showing the right answer for the question
-    """
- 
+class ComplexFieldInterface(QWidget):
     SPACING = 1
-    def __init__(self, expected_word_list, spacing=None, font=None, size=None, color=None, bg=None, bold=None, italic=None):
+ 
+    def __init__(self, secondary_word_list, spacing=None, font=None, size=None, color=None, bg=None, bold=None, italic=None):
         super().__init__()        
         
+        #
+        # DEFAULT parameters
+        #
         if font is None:
             self.font = GuiPrala.BASIC_FONT
         else:
@@ -607,52 +604,39 @@ class AnswerField(QWidget):
         else:
             self.italic = italic
         if spacing is None:
-            self.spacing = AnswerField.SPACING
+            self.spacing = ComplexFieldInterface.SPACING
         else:
             self.spacing = spacing
         
+        #
+        # LAYOUT
+        #
         layout = QHBoxLayout()
         layout.setSpacing( self.spacing )
         self.setLayout(layout)
 
-        self.setExpectedWordList(expected_word_list)
+        self.generateWidgetsForSecondaryWordList(secondary_word_list)
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-    def __clear_layout(self, layout):
-        
-        if layout is not None:
-            while layout.count():
-                item = layout.takeAt(0)
-                widget = item.widget()
-                if widget is not None:
-                    widget.deleteLater()
-                else:
-                    self.__clear_layout(item.layout())
-
-    def setExpectedWordList(self, expected_word_list):
+    def generateWidgetsForSecondaryWordList(self, secondary_word_list):
         """
         Every time when it is called, a new layout will be generated
         """
 
-        self.__expected_word_list = expected_word_list
+        self.__secondary_word_list = secondary_word_list
     
         # remove all widgets
         self.__clear_layout(self.layout())
           
-        for i in expected_word_list:
-            self.layout().addWidget( self._get_single_field(i) )
+        for i in secondary_word_list:
+            self.layout().addWidget( self.generateSingleField(i) )
 
-        self.layout().addStretch(10)
-        #print("children: ", self.layout().count(),  self.__class__.__name__)
-        
+        self.layout().addStretch(1)
+ 
+    def generateSingleField(self, word):  raise NotImplementedError
 
-    def _get_single_field(self, word):
-        """
-        Returns the empty SingleField of the specific part of the word
-        with the right length, font size, basic_bg for inside use
-        """
-        return SingleField(len(word), font=self.font, size=self.size, color=self.color, bg=self.bg)
+    def getSingleFieldType(self): raise NotImplementedError #return SingleField
 
     def clearText(self):
         """
@@ -676,10 +660,29 @@ class AnswerField(QWidget):
             widget.clear()
             widget.setEnabled( True )
 
-    def getExpectedWordList(self):
-        return self.__expected_word_list
+    def getFieldIterator(self):
+        """
+        Returns the SingleField widgets
+        """
+        for widget in self.children():
+            if isinstance( widget, self.getSingleFieldType() ):
+                yield widget
+
+    def __clear_layout(self, layout):
+        
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+                else:
+                    self.__clear_layout(item.layout())
+
+    def getSecondaryWordList(self):
+        return self.__secondary_word_list
     
-    def getFieldsContentList(self):
+    def getContentOfFieldsList(self):
         """
         Returns the contents of the fields in a list
         """
@@ -692,22 +695,43 @@ class AnswerField(QWidget):
 
         return fields_content_list
 
-    def getFieldIterator(self):
-        """
-        Returns the SingleField widgets
-        """
-        #print("children: ", self.children())
-        #for i in range(self.layout.count()):
-        for widget in self.children():
-            if isinstance(widget, SingleField):
-                yield widget
-
     def setFirstFocus(self):
         self.layout().itemAt(0).widget().setFocus()
+ 
+    
+class AnswerComplexField(ComplexFieldInterface):
+    """
+    This class represents fields in one row with specific characteristics of font.
+    The fields are for typing the answer for the question.
+    The fields are enabled for typing when the app expecting the answer for the question.
+    The fields are disabled for typing when the app showing the right answer for the question
+    """ 
+#    def __init__(self, expected_word_list, spacing=None, font=None, size=None, color=None, bg=None, bold=None, italic=None):
+#        super().__init(expected_word_list, spacing=spacing, font=font, size=size, color=color, bg=bg, bold=bold, italic=italic)
+
+    def generateSingleField(self, word):
+        """
+        Returns the empty SingleField of the specific part of the word
+        with the right length, font size, basic_bg for inside use
+        """
+        #single_field = SingleField(word, font=self.font, size=self.size, color=self.color, bg=self.bg)
+        #return single_field
+        return SingleFieldWithPattern(word, font=self.font, size=self.size, color=self.color, bg=self.bg)
+ 
+    def getSingleFieldType(self):
+        return SingleFieldWithPattern
+
+    # TODO delete
+    def setExpectedWordList(self, good_answer):
+        self.generateWidgetsForSecondaryWordList(good_answer)
+
+    def getFieldsContentList(self):
+        return self.getContentOfFieldsList()
 
 
 
-class ExpectedAnswerField(AnswerField):
+
+class ExpectedAnswerComplexField(ComplexFieldInterface):
     """
     This class represents the right answer fro the question.
     The vertical positions of the characters are synchronized with the characters in the answer's fields
@@ -715,28 +739,38 @@ class ExpectedAnswerField(AnswerField):
     WRONG_COLOR = Qt.red
     GOOD_COLOR = Qt.green
 
-    def __init__(self, word_list, spacing=None, font=None, size=None, color=None, bg=None, bold=None, italic=None):      
+    def __init__(self, expected_word_list, spacing=None, font=None, size=None, color=None, bg=None, bold=None, italic=None):
         
-        self.wrong_color = ExpectedAnswerField.WRONG_COLOR
-        self.good_color = ExpectedAnswerField.GOOD_COLOR
+        self.wrong_color = ExpectedAnswerComplexField.WRONG_COLOR
+        self.good_color = ExpectedAnswerComplexField.GOOD_COLOR
 
-        super().__init__(word_list, spacing=spacing, font=font, size=size, color=color, bg=bg, bold=bold, italic=italic)
-        
-    def _get_single_field(self, word):
+        super().__init__(expected_word_list, spacing=spacing, font=font, size=size, color=color, bg=bg, bold=bold, italic=italic)
+
+    def generateSingleField(self, word):
         """
         Returns the empty SingleField of the specific part of the word
         with the right length, font size, basic_bg for inside use
         """
-        sf = SingleField(len(word), font=self.font, size=self.size, color=self.color, bg=self.bg)
-        sf.setEnabled(False)
-        return sf
+        single_field = SingleField(word, font=self.font, size=self.size, color=self.color, bg=self.bg)
+        single_field.setEnabled(False)
+        return single_field
 
+    def getSingleFieldType(self):
+        return SingleField
+
+    def setExpectedWordList(self, good_answer):
+        self.generateWidgetsForSecondaryWordList(good_answer)
+
+    def getFieldsContentList(self):
+        return self.getContentOfFieldsList()
+
+ 
     def showText(self, failed_position_list, answer_list):      
         """
         Shows the expected answer, coloring the faild characters in position
         """
 
-        good_answer_list = self.getExpectedWordList()
+        good_answer_list = self.getSecondaryWordList()
 
         # go trough the answer and the failed_position_list pairs        
         #word_failed_position_pair_list = list(zip( completed_answer, failed_position_list ))
@@ -744,23 +778,51 @@ class ExpectedAnswerField(AnswerField):
 
         self.clearText()
 
-        # trough the widgets in the layout
-        #for widget in self.getFieldIterator():
-        for i in range(self.layout().count()):
+        i = 0
+        for widget in self.getFieldIterator():
 
-            # self.layout.itemAt(i) -> QWidgetItem
-            widget = self.layout().itemAt(i).widget()
-            if isinstance(widget, SingleField):
+            # go trough all characters in the widget
+            for pos in range(len(word_failed_position_pair_list[i][0])):
 
-                    # go trough all characters in the widget
-                    for pos in range(len(word_failed_position_pair_list[i][0])):
-
-                        if pos in word_failed_position_pair_list[i][1]:
-                            widget.appendText(word_failed_position_pair_list[i][0][pos], color=self.wrong_color)
+                if pos in word_failed_position_pair_list[i][1]:
+                    widget.appendText(word_failed_position_pair_list[i][0][pos], color=self.wrong_color)
                           
-                        else:
-                            widget.appendText(word_failed_position_pair_list[i][0][pos], color=self.good_color)
-  
+                else:
+                    widget.appendText(word_failed_position_pair_list[i][0][pos], color=self.good_color)
+            i += 1
+
+
+class SingleFieldWithPattern(QWidget):
+    def __init__(self, word, font=None, size=None, color=None, bg=None):
+        super().__init__()
+
+        self.word = word
+
+        # This field is the patter - just right under the input field - disabled - not focusable
+        self.patternField = SingleField(word, parent=self, font=font, size=size, color=color, bg=Qt.white)
+        template=re.sub(r"[^, \!]", "_", self.word)
+        self.patternField.setText(template)
+        self.patternField.setEnabled(False)
+        self.patternField.move(0, 0)
+        self.patternField.setFocusPolicy(Qt.NoFocus)
+
+        # Input field - Transparent - behind it the pattern is visible
+        self.textField = SingleField(word, parent=self, font=font, size=size, color=color, bg=bg)
+        self.textField.move(0, 0)
+        self.textField.viewport().setAutoFillBackground(False)
+
+        self.setMinimumSize(self.textField.minimumSize())
+
+    def setFocus(self):
+        print("focus")
+        self.textField.setFocus()
+
+    def clear(self):
+        self.textField.clear()
+
+    def toPlainText(self):
+        return self.textField.toPlainText()
+
 class SingleField(QTextEdit):
     """
     This class represents a single field with specific characteristic of font.
@@ -771,8 +833,8 @@ class SingleField(QTextEdit):
         -Reaching the max number of characters causing the next widget gets the focus
     """
  
-    def __init__(self, length, font=None, size=None, color=None, bg=None):
-        super().__init__()
+    def __init__(self, word, parent=None, font=None, size=None, color=None, bg=None):
+        super().__init__(parent)
 
         if font == None:
             self.basic_font=SingleField.BASIC_FONT
@@ -791,7 +853,8 @@ class SingleField(QTextEdit):
         else:
             self.basic_bg = bg
 
-        self.length = length
+        self.word = word
+        self.length = len(word)
 
         # No Border
         self.setFrameStyle(QFrame.NoFrame)
@@ -807,7 +870,7 @@ class SingleField(QTextEdit):
         self.setFixedHeight(self.fontMetrics().height() + 3)
 
         # Horizontal size of the field
-        self.setFixedWidth(self.fontMetrics().width("W" * length) + 10)
+        self.setFixedWidth(self.fontMetrics().width("W" * self.length) + 10)
 
         # for control the number of the characters in the field
         self.textChanged.connect(self.changed_text)
@@ -818,11 +881,17 @@ class SingleField(QTextEdit):
         # monospace font - basic_size:15 Bold
         self.setFont(QFont("Courier New",pointSize=self.basic_size, weight=QFont.Bold))
 
-        # font basic_color and basic_bg basic_color
-        palette = self.palette()   # QPalette()
-        palette.setColor(QPalette.Text, self.basic_color)
-        palette.setColor(self.backgroundRole(), self.basic_bg)
-        self.setPalette( palette )
+        ## font basic_color and basic_bg basic_color
+        #palette = self.palette()   # QPalette()
+        #palette.setColor(QPalette.Text, self.basic_color)
+        #palette.setColor(self.backgroundRole(), self.basic_bg)
+        #self.setPalette( palette )
+        palette = self.viewport().palette()
+        #palette.setColor(QPalette.Text, self.basic_color)
+        palette.setColor(self.viewport().backgroundRole(), self.basic_bg)
+        self.viewport().setPalette(palette)
+
+        self.setTextColor(self.basic_color)
 
     def appendText( self, text, color=None, bg=None ):
         if color == None:
@@ -839,6 +908,9 @@ class SingleField(QTextEdit):
         if key in [ Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab ]:
             self.parent().focusNextChild()
         else:
+
+#            if( hasattr(self, 'extra') ):
+#            print(self.toPlainText())
             QTextEdit.keyPressEvent(self, event)
     
     def changed_text(self):
@@ -849,9 +921,24 @@ class SingleField(QTextEdit):
             cursor = self.textCursor()
             cursor.setPosition(self.length)
             self.setTextCursor(cursor)
+
         elif len(self.toPlainText()) == self.length:
             self.parent().focusNextChild()
 
+
+        #else:
+        #    #template=re.sub(r"[^, \!]", "_", self.word)
+        #    #print(len(self.toPlainText()))
+        #    #self.setPlainText( self.toPlainText().strip() + template.strip()[len(self.toPlainText()):] )
+        #    self.textChanged.disconnect()
+        #    self.setPlainText(self.toPlainText())
+
+#            self.textChanged.connect(self.changed_text)
+#
+#            cursor = self.textCursor()
+#            cursor.setPosition(len(self.toPlainText()))
+#            self.setTextCursor(cursor)
+#            print("cursor at the end")
 
 class ResultLamp(QLabel):
     """

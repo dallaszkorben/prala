@@ -1,11 +1,11 @@
-ige:bibli-03:fösa, föser, föste, föst, fös:hajt, terel, kerget:
-ige:bibli-03:sprida, sprider, spred, spritt, sprid:terjeszt, áraszt, szór:
-ige:bibli-03:vrida, vrider, vred, vridit, vrid:forgat, fordít, csavar:
+ige:bibli-03:fösa|föser|föste|föst|fös:hajt, terel, kerget:
+ige:bibli-03:sprida|sprider|spred|spritt|sprid:terjeszt, áraszt, szór:
+ige:bibli-03:vrida|vrider|vred|vridit|vrid:forgat, fordít, csavar:
 
-főnév:bibli-03:ett leende, leendet, leenden, leendena:mosoly:
-főnév:bibli-03:en smäll, smällen, smällar, smällarna:csattanás:
+főnév:bibli-03:ett leende|leendet|leenden|leendena:mosoly:
+főnév:bibli-03:en smäll|smällen|smällar|smällarna:csattanás:
 
-melléknév:bibli-03:orolig:aggódó, gondterhelt, nyugtalan:
+melléknév:bibli-03:orolig:aggódó|gondterhelt, nyugtalan:
 
 határozószó:bibli-03:verkligen:valóban, igazán:
 
@@ -31,19 +31,19 @@ kifejezés:bibli-03:får jag låna din penna:kölcsön kaphatom a tolladat?
 kifejezés:bibli-03:det där gjorde ont:ez ott fáj
 
 
-ige:bibli-02:förvirra, förvirrar, förvirrade, förvirrat, förvirra:megzavar, zavarba ejt
-ige:bibli-02:stjäla, stjäl, stal, stulit, stjäl:lop, ellop
+ige:bibli-02:förvirra|förvirrar|förvirrade|förvirrat|förvirra:megzavar, zavarba ejt
+ige:bibli-02:stjäla|stjäl|stal|stulit|stjäl:lop, ellop
 ige:bibli-02:stöna: nyög
 ige:bibli-02:hejda:megállít, visszatart
 ige:bibli-02:rulla:gurul, gördül
 ige:bibli-02:fastna:beragad, megakad, fennakad
-ige:bibli-02:fräsa, fräser, fräste, fräst, fräs:sistereg, serceg, sziszeg
-ige:bibli-02:upptäcka, upptäcker, upptäckte, upptäckt, upptäck:felfedez
-ige:bibli-02:snyta, snyter, snöt, snutit, snyt:orrot fúj, orrot töröl
+ige:bibli-02:fräsa|fräser|fräste|fräst|fräs:sistereg, serceg, sziszeg
+ige:bibli-02:upptäcka|upptäcker|upptäckte|upptäckt|upptäck:felfedez
+ige:bibli-02:snyta|snyter|snöt|snutit|snyt:orrot fúj, orrot töröl
 ige:bibli-02:snyfta:sírdogál, pityereg
 ige:bibli-02:gapa:tátong
 
-főnév:bibli-02:en fjäril, fjärilen, fjärilar, fjärilarna:lepke, pillangó
+főnév:bibli-02:en fjäril|fjärilen|fjärilar|fjärilarna:lepke, pillangó
 főnév:bibli-02:en förmögenhet:vagyon, gazdagság, javak
 főnév:bibli-02:en ytterdörr:külső ajtó, bejárati ajtó
 főnév:bibli-02:en skylt:tábla, cégtábla
@@ -54,8 +54,8 @@ főnév:bibli-02:en vana:szokás, gyakorlat, rutin
 
 melléknév:bibli-02:värd:érdemes, méltó, érő, értékű
 melléknév:bibli-02:enda:egyetlen, egyedüli
-melléknév:bibli-02:tung, tungt, tunga:nehéz, súlyos
-melléknév:bibli-02:viss, visst, vissa:meghatározott, bizonyos
+melléknév:bibli-02:tung|tungt|tunga:nehéz, súlyos
+melléknév:bibli-02:viss|visst|vissa:meghatározott, bizonyos
 
 határozószó:bibli-02:nerför:lefelé
 határozószó:bibli-02:ändå:mégis, úgyis, mindenképpen
@@ -71,16 +71,16 @@ kifejezés:bibli-02:de sträcker sig från golv till tak:azok padótól plafonig
 kifejezés:bibli-02:när upptäckte du stölden:mikor fedezted fel a lopást?
 kifejezés:bibli-02:med en visst besvär rullar han undan en bokvagn:egy bizonyos nehézséggel gurit félre ő egy könyvkocsit
 
-ige:bibli-01:föra, för, förde, fört, för:vezet, visz, szállít 
-ige:bibli-01:tjuta, tjuter, tjöt, tjutit, tjut:üvölt, bömböl
+ige:bibli-01:föra|för|förde|fört|för:vezet, visz, szállít 
+ige:bibli-01:tjuta|tjuter|tjöt|tjutit|tjut:üvölt, bömböl
 ige:bibli-01:anteckna:feljegyez, felír, jegyzetel
-ige:bibli-01:knäppa, knäpper, knäppte, knäppt, knäpp:csettint, pattint, gombol
-ige:bibli-01:leda, leder, ledde, lett, led:vezet, visz, eredményez
-ige:bibli-01:rusa, rusar, rusade, rusat, rusa:rohan, siet
+ige:bibli-01:knäppa|knäpper|knäppte|knäppt|knäpp:csettint, pattint, gombol
+ige:bibli-01:leda|leder|ledde|lett|led:vezet, visz, eredményez
+ige:bibli-01:rusa|rusar|rusade|rusat|rusa:rohan, siet
 
 főnév:bibli-01:en hantverkare:kisiparos, mesterember
 főnév:bibli-01:en portfölj:aktatáska
-főnév:bibli-01:ett tålamod, tålamodet:türelem
+főnév:bibli-01:ett tålamod|tålamodet:türelem
 
 melléknév:bibli-01:stilig:csinos, elegáns
 melléknév:bibli-01:dyrbar:értékes

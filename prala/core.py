@@ -13,7 +13,7 @@ from prala.exceptions import NoDictionaryError
 class FilteredDictionary(object):
     DICT_EXT=".dict"
     RECORD_SPLITTER=":"
-    WORD_SPLITTER=","
+    WORD_SPLITTER="|"
 
     DICT_POS=Enum(
         POS_POS_FILTER=0,

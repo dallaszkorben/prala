@@ -92,7 +92,7 @@ class GuiPrala(QMainWindow):
 
         # ENABLE TO SHOW PATTERN
         enable_to_show_pattern_icon = QIcon()
-        enable_to_show_pattern_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-show-pattern-on-tool.png"))) ), QIcon.Normal, QIcon.On )
+        enable_to_show_pattern_icon.addPixmap(QPixmap( resource_filename(__name__, " and hasattr(self, 'asking_canvas')/".join(("images", "enable-to-show-pattern-on-tool.png"))) ), QIcon.Normal, QIcon.On )
         enable_to_show_pattern_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-show-pattern-off-tool.png"))) ), QIcon.Normal, QIcon.Off)
         self.enable_to_show_pattern_button = QToolButton()
         self.enable_to_show_pattern_button.setFocusPolicy(Qt.NoFocus)
@@ -291,6 +291,11 @@ class GuiPrala(QMainWindow):
 
     def changeEnableToShowPattern(self, checked):
         ConfigIni.getInstance().setShowPattern( checked )
+        if checked and hasattr(self, 'asking_canvas'):
+            self.asking_canvas.answer_field.showPattern()
+        elif hasattr(self, 'asking_canvas'):
+            self.asking_canvas.answer_field.hidePattern()
+        self.asking_canvas.answer_field.setFirstFocus()            
         #self.say_out = checked     
 
     def changeBaseLanguage( self, text ):
@@ -721,6 +726,14 @@ class AnswerComplexField(ComplexFieldInterface):
     def getSingleFieldType(self):
         return SingleFieldWithPattern
 
+    def showPattern(self):
+        for widget in self.getFieldIterator():
+            widget.showPattern()
+
+    def hidePattern(self):
+        for widget in self.getFieldIterator():
+            widget.hidePattern()
+
     # TODO delete
     def setExpectedWordList(self, good_answer):
         self.generateWidgetsForSecondaryWordList(good_answer)
@@ -809,8 +822,7 @@ class SingleFieldWithPattern(QWidget):
         # This field is the patter - just right under the input field - disabled - not focusable
         self.patternField = SingleField(word, parent=self, font=font, size=size, color=color, bg=Qt.white)
         if ConfigIni.getInstance().isShowPattern():
-            template=re.sub(r"[^, \!\?\.]", "_", self.word)
-            self.patternField.setText(template)        
+            self.showPattern()
         self.patternField.setEnabled(False)
         self.patternField.move(0, 0)
         self.patternField.setFocusPolicy(Qt.NoFocus)
@@ -821,6 +833,13 @@ class SingleFieldWithPattern(QWidget):
         self.textField.viewport().setAutoFillBackground(False)
 
         self.setMinimumSize(self.textField.minimumSize())
+
+    def hidePattern(self):
+        self.patternField.setText("")
+
+    def showPattern(self):
+        template=re.sub(r"[^, \!\?\.]", "_", self.word)
+        self.patternField.setText(template)        
 
     def setFocus(self):
         self.textField.setFocus()

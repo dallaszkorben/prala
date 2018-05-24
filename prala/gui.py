@@ -793,6 +793,14 @@ class ExpectedAnswerComplexField(ComplexFieldInterface):
 
 
 class SingleFieldWithPattern(QWidget):
+    """
+    This widget is a SingleField with template if it is enabled.
+    Actually it is two SingleFields placed on each other.
+    In the foregrand there is the 'pattern' which is disabled and shows special characters ".,!?"
+    and underscores '_" in alphanumerical positions
+    In the background there is the 'input' field which is enabled but opaque for being able 
+    to see the 'pattern'
+    """
     def __init__(self, word, font=None, size=None, color=None, bg=None):
         super().__init__()
 
@@ -801,7 +809,7 @@ class SingleFieldWithPattern(QWidget):
         # This field is the patter - just right under the input field - disabled - not focusable
         self.patternField = SingleField(word, parent=self, font=font, size=size, color=color, bg=Qt.white)
         if ConfigIni.getInstance().isShowPattern():
-            template=re.sub(r"[^, \!]", "_", self.word)
+            template=re.sub(r"[^, \!\?\.]", "_", self.word)
             self.patternField.setText(template)        
         self.patternField.setEnabled(False)
         self.patternField.move(0, 0)

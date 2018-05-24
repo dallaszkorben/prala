@@ -911,7 +911,7 @@ class SingleField(QTextEdit):
         if bg == None:
             bg = self.basic_bg
 
-#        self.setTextColor(color)
+        self.setTextColor(color)
         #self.setTextBackgroundColor(bg)
         self.insertPlainText(text)
 

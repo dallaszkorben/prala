@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (QWidget, QGridLayout, QFrame, QMainWindow,
     QLabel, QPushButton, QLineEdit, QApplication, QHBoxLayout, QVBoxLayout,
     QTextEdit, QDesktopWidget, QSizePolicy, QAction, QToolButton, QMessageBox, 
     QFileDialog, QComboBox, QToolBar)   
-from PyQt5.QtGui import QPainter, QFont, QColor, QIcon, QPixmap, QPalette
+from PyQt5.QtGui import QPainter, QFont, QColor, QIcon, QPixmap, QPalette, QTextCharFormat
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QSize, QEvent
 
@@ -346,6 +346,7 @@ class AskingCanvas(QWidget):
         self.note_field=TextLabel("", font="Courier New", size=10, color=Qt.gray, bold=True, italic=True)
 
         self.answer_field=AnswerComplexField(good_answer, spacing=AskingCanvas.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.blue, bg=self.palette().color(QPalette.Background))
+        #self.answer_field.disableText()
 
         self.good_answer_field=ExpectedAnswerComplexField(good_answer, spacing=AskingCanvas.FIELD_DISTANCE, font="Courier new", size=15, color=Qt.black, bg=self.palette().color(QPalette.Background))
 
@@ -717,8 +718,6 @@ class AnswerComplexField(ComplexFieldInterface):
         Returns the empty SingleField of the specific part of the word
         with the right length, font size, basic_bg for inside use
         """
-        #single_field = SingleField(word, font=self.font, size=self.size, color=self.color, bg=self.bg)
-        #return single_field
         return SingleFieldWithPattern(word, font=self.font, size=self.size, color=self.color, bg=self.bg)
  
     def getSingleFieldType(self):
@@ -812,18 +811,20 @@ class SingleFieldWithPattern(QWidget):
     In the background there is the 'input' field which is enabled but opaque for being able 
     to see the 'pattern'
     """
+    PATTERN_COLOR=Qt.blue
+    PATTERN_BG=Qt.white
     def __init__(self, word, font=None, size=None, color=None, bg=None):
         super().__init__()
 
         self.word = word
 
         # This field is the patter - just right under the input field - disabled - not focusable
-        self.patternField = SingleField(word, parent=self, font=font, size=size, color=color, bg=Qt.white)
+        self.patternField = SingleField(word, parent=self, font=font, size=size, color=type(self).PATTERN_COLOR, bg=type(self).PATTERN_BG)
         if ConfigIni.getInstance().isShowPattern():
             self.showPattern()
         self.patternField.setEnabled(False)
         self.patternField.move(0, 0)
-        self.patternField.setFocusPolicy(Qt.NoFocus)
+        self.patternField.setFocusPolicy(Qt.NoFocus)    
 
         # Input field - Transparent - behind it the pattern is visible
         self.textField = SingleField(word, parent=self, font=font, size=size, color=color, bg=bg)
@@ -889,8 +890,12 @@ class SingleField(QTextEdit):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         # font, colors
-        self.__set_basic_font()
-
+        self.setFont(QFont(self.basic_font,pointSize=self.basic_size, weight=QFont.Bold))
+        palette = self.viewport().palette()
+        palette.setColor(self.viewport().backgroundRole(), self.basic_bg)
+        self.viewport().setPalette(palette)
+        self.setTextColor(self.basic_color)
+  
         # Vertical size of the field (1 line)
         self.setFixedHeight(self.fontMetrics().height() + 3)
 
@@ -899,24 +904,6 @@ class SingleField(QTextEdit):
 
         # for control the number of the characters in the field
         self.textChanged.connect(self.changed_text)
-        
-
-    def __set_basic_font(self):
-       
-        # monospace font - basic_size:15 Bold
-        self.setFont(QFont("Courier New",pointSize=self.basic_size, weight=QFont.Bold))
-
-        ## font basic_color and basic_bg basic_color
-        #palette = self.palette()   # QPalette()
-        #palette.setColor(QPalette.Text, self.basic_color)
-        #palette.setColor(self.backgroundRole(), self.basic_bg)
-        #self.setPalette( palette )
-        palette = self.viewport().palette()
-        #palette.setColor(QPalette.Text, self.basic_color)
-        palette.setColor(self.viewport().backgroundRole(), self.basic_bg)
-        self.viewport().setPalette(palette)
-
-        self.setTextColor(self.basic_color)
 
     def appendText( self, text, color=None, bg=None ):
         if color == None:
@@ -924,8 +911,8 @@ class SingleField(QTextEdit):
         if bg == None:
             bg = self.basic_bg
 
-        self.setTextColor(color)
-        self.setTextBackgroundColor(bg)
+#        self.setTextColor(color)
+        #self.setTextBackgroundColor(bg)
         self.insertPlainText(text)
 
     def keyPressEvent(self, event):
@@ -933,12 +920,10 @@ class SingleField(QTextEdit):
         if key in [ Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab ]:
             self.parent().focusNextChild()
         else:
-
-#            if( hasattr(self, 'extra') ):
-#            print(self.toPlainText())
             QTextEdit.keyPressEvent(self, event)
     
     def changed_text(self):
+        self.setTextColor(self.basic_color)
         
         if len(self.toPlainText()) > self.length:
             self.setPlainText( self.toPlainText().strip()[0:self.length] )
@@ -949,21 +934,6 @@ class SingleField(QTextEdit):
 
         elif len(self.toPlainText()) == self.length:
             self.parent().focusNextChild()
-
-
-        #else:
-        #    #template=re.sub(r"[^, \!]", "_", self.word)
-        #    #print(len(self.toPlainText()))
-        #    #self.setPlainText( self.toPlainText().strip() + template.strip()[len(self.toPlainText()):] )
-        #    self.textChanged.disconnect()
-        #    self.setPlainText(self.toPlainText())
-
-#            self.textChanged.connect(self.changed_text)
-#
-#            cursor = self.textCursor()
-#            cursor.setPosition(len(self.toPlainText()))
-#            self.setTextCursor(cursor)
-#            print("cursor at the end")
 
 class ResultLamp(QLabel):
     """

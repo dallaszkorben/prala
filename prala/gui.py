@@ -92,7 +92,7 @@ class GuiPrala(QMainWindow):
 
         # ENABLE TO SHOW PATTERN
         enable_to_show_pattern_icon = QIcon()
-        enable_to_show_pattern_icon.addPixmap(QPixmap( resource_filename(__name__, " and hasattr(self, 'asking_canvas')/".join(("images", "enable-to-show-pattern-on-tool.png"))) ), QIcon.Normal, QIcon.On )
+        enable_to_show_pattern_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-show-pattern-on-tool.png"))) ), QIcon.Normal, QIcon.On )
         enable_to_show_pattern_icon.addPixmap(QPixmap( resource_filename(__name__, "/".join(("images", "enable-to-show-pattern-off-tool.png"))) ), QIcon.Normal, QIcon.Off)
         self.enable_to_show_pattern_button = QToolButton()
         self.enable_to_show_pattern_button.setFocusPolicy(Qt.NoFocus)

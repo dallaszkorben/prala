@@ -7,7 +7,7 @@ setup(
       name=sp['name'],
       version=sp['version'],
       description='Practice Language',
-      long_description=open('README.md', encoding="utf-8").read(),
+      long_description="Practice Language",	#=open('README.md', encoding="utf-8").read(),
       url='http://github.com/dallaszkorben/prala',
       author='dallaszkorben',
       author_email='dallaszkorben@gmail.com',

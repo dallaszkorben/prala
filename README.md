@@ -81,15 +81,15 @@ Let's say you are a person speaking English and want to practice Swedish. Here i
 #### 
     verb:chapter-01:göra, gör, gjorde, gjort, gör:do           
     verb:chapter-01:komma, kommer, kom, kommit, kom:arrive, come  
-    verb:chapter-01:gå, går, gick, gått, gå:go, walk  
-    noun:chapter-01:ett hus, huset, hus, husen:building, house
-    noun:chapter-01:en katt, katten, katter, katterna:cat
-    noun:chapter-01:en nyckel, nyckeln, nycklar, nycklarna:key  
-    adjektiv:bibli-03:orolig, oroligt, oroliga:worried
-    adjektiv:bibli-03:tung, tungt, tunga:heavy  
+    verb:chapter-02:gå, går, gick, gått, gå:go, walk  
+    noun:chapter-02:ett hus, huset, hus, husen:building, house
+    noun:chapter-03:en katt, katten, katter, katterna:cat
+    noun:chapter-03:en nyckel, nyckeln, nycklar, nycklarna:key  
+    adjektiv:chapter-02:orolig, oroligt, oroliga:worried
+    adjektiv:chapter-03:tung, tungt, tunga:heavy  
     adverb:chapter-01:verkligen:really  
-    sentence:chapter-01:han stirrar tomt framför sig:he stares empty in front of him           
-    sentence:chapter-01:han skyndar i väg:he hurries away:han  
+    sentence:chapter-02:han stirrar tomt framför sig:he stares empty in front of him           
+    sentence:chapter-02:han skyndar i väg:he hurries away:han  
     
 Notes:  
 - chapter-01, chapter-02, chapter-03 **extra filter**s are used. Presumably the person who created this dictionary got the words from different chapters of a book. Using this filter it is possible to practice a specific chapter instead of the all book.

@@ -1,19 +1,19 @@
 verb:chapter-01:göra|gör|gjorde|gjort|gör:do
-verb:chapter-01:komma|kommer|kom|kommit|kom:arrive, come
-verb:chapter-01:gå|går|gick|gått|gå:go, walk
+verb:chapter-02:komma|kommer|kom|kommit|kom:arrive, come
+verb:chapter-03:gå|går|gick|gått|gå:go, walk
 
 noun:chapter-01:ett hus|huset|hus|husen:building, house
-noun:chapter-01:en katt|katten|katter|katterna:cat
-noun:chapter-01:en nyckel|nyckeln|nycklar|nycklarna:key
+noun:chapter-02:en katt|katten|katter|katterna:cat
+noun:chapter-03:en nyckel|nyckeln|nycklar|nycklarna:key
 
-adjektiv:bibli-03:orolig|oroligt|oroliga:worried
-adjektiv:bibli-03:tung|tungt|tunga:heavy
-adjektiv:bibli-03:stilig:stylish
+adjektiv:chapter-01:orolig|oroligt|oroliga:worried
+adjektiv:chapter-02:tung|tungt|tunga:heavy
+adjektiv:chapter-03:stilig:stylish
 
 adverb:chapter-01:verkligen:really
-adverb:chapter-01:ändå:still, yet, anyway
-adverb:chapter-01:återigen:again
+adverb:chapter-02:ändå:still, yet, anyway
+adverb:chapter-03:återigen:again
 
-:chapter-01:han skyndar i väg:he hurries away
-:chapter-01:han stirrar tomt framför sig:he stares empty in front of him
-:chapter-01:när upptäckte du stölden:when did you discover theft?
+sentence:chapter-01:han skyndar i väg:he hurries away
+sentence:chapter-02:han stirrar tomt framför sig:he stares empty in front of him
+sentence:chapter-03:när upptäckte du stölden:when did you discover theft?
